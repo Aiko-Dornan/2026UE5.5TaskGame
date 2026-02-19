@@ -7,7 +7,10 @@
 		{
 			"Name": "TaskGame_BadCompany",
 			"Type": "Runtime",
-			"LoadingPhase": "Default"
+			"LoadingPhase": "Default",
+			"AdditionalDependencies": [
+				"Engine"
+			]
 		},
 		{
 			"Name": "GitEditor",
@@ -18,7 +21,6 @@
 				"AnimationModifiers"
 			]
 		}
-
 	],
 	"Plugins": [
 		{

@@ -8,7 +8,20 @@ public class TaskGame_BadCompany : ModuleRules
 	{
 		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
 	
-		PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore", "EnhancedInput" });
+		PublicDependencyModuleNames.AddRange(new string[] { 
+			"Core",
+            "CoreUObject",
+            "Engine",
+            "InputCore",
+            "EnhancedInput",
+            "UMG",
+            "Slate",
+            "SlateCore",
+            "AIModule",
+            "GameplayTasks",
+            "NavigationSystem",
+            "Niagara" 
+		});
 
 		PrivateDependencyModuleNames.AddRange(new string[] {  });
 
