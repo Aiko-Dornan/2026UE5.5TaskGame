@@ -1,4 +1,4 @@
-#include "Item/BaseItem.h"
+ï»¿#include "Item/BaseItem.h"
 #include "Components/StaticMeshComponent.h"
 #include "PlayerCharacter.h"
 
@@ -15,6 +15,6 @@ ABaseItem::ABaseItem()
 
 void ABaseItem::OnPickedUp(APlayerCharacter* Player)
 {
-    // Šî–{‚ÍÁ‚¦‚é‚¾‚¯
+    // åŸºæœ¬ã¯æ¶ˆãˆã‚‹ã ã‘
     Destroy();
 }

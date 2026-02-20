@@ -1,4 +1,4 @@
-#include "PlayerCharacter.h"
+﻿#include "PlayerCharacter.h"
 #include "Camera/CameraComponent.h"
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
@@ -9,7 +9,7 @@ APlayerCharacter::APlayerCharacter()
 {
     PrimaryActorTick.bCanEverTick = true;
 
-    // ===== �J�����쐬 =====
+    // ===== カメラ作成 =====
     FPSCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("FPSCamera"));
     check(FPSCamera != nullptr);
 
@@ -18,26 +18,11 @@ APlayerCharacter::APlayerCharacter()
     FPSCamera->SetRelativeLocation(FVector(0.f, 0.f, 64.f));
     FPSCamera->bUsePawnControlRotation = true;
 
-    // �L�����̓R���g���[���[��]�ɒǏ]���Ȃ�
+    // キャラはコントローラー回転に追従しない
     bUseControllerRotationYaw = true;
     bUseControllerRotationPitch = true;
     bUseControllerRotationRoll = false;
-    /*
-    CameraComponent = CreateDefaultSubobject<UCameraComponent>(TEXT("Camera"));
-	check(CameraComponent != nullptr);
-
-	CameraComponent->SetupAttachment(CastChecked<USceneComponent, UCapsuleComponent>(GetCapsuleComponent()));
-
-	CameraComponent->SetRelativeLocation(FVector(0.0f, 0.0f, 50.0f + BaseEyeHeight));
-
-	CameraComponent->bUsePawnControlRotation = true;
-
-	//  �J�����̌����ɑ̂��Ǐ]������
-	bUseControllerRotationYaw = true;
-	bUseControllerRotationPitch = true;
-	bUseControllerRotationRoll = false;
-    */
-
+ 
 }
 
 void APlayerCharacter::BeginPlay()
@@ -57,7 +42,25 @@ void APlayerCharacter::BeginPlay()
         }
     }
 
-   
+    if (InteractWidgetClass)
+    {
+        InteractWidget = CreateWidget<UInteractWidget>(GetWorld(), InteractWidgetClass);
+
+        if (InteractWidget)
+        {
+            InteractWidget->AddToViewport();
+            InteractWidget->SetVisibility(ESlateVisibility::Hidden);
+        }
+    }
+
+    //アイテム名取得
+    GetWorldTimerManager().SetTimer(
+        TraceTimerHandle,
+        this,
+        &APlayerCharacter::TraceForItem,
+        0.05f,   // 0.05秒ごと
+        true
+    );
 
 }
 
@@ -97,29 +100,74 @@ void APlayerCharacter::Look(const FInputActionValue& Value)
     AddControllerPitchInput(LookAxis.Y);
 }
 
-void APlayerCharacter::Interact()
+bool APlayerCharacter::PerformCameraLineTrace(FHitResult& OutHit, float TraceDistance)
 {
-    FVector Start = FPSCamera->GetComponentLocation();
-    FVector End = Start + (FPSCamera->GetForwardVector() * 300.f);
+    if (!FPSCamera) return false;//カメラがないなら実行しない。
 
-    FHitResult Hit;
+    FVector Start = FPSCamera->GetComponentLocation();//開始位置はカメラ位置。
+    FVector End = Start + (FPSCamera->GetForwardVector() * TraceDistance);//終了位置。
+
     FCollisionQueryParams Params;
-    Params.AddIgnoredActor(this);
+    Params.AddIgnoredActor(this);//自分(この場合はプレイヤー)をヒット判定から除外
 
-    bool bHit = GetWorld()->LineTraceSingleByChannel(
-        Hit,
+    //ライントレースを飛ばしてヒット判定を返り値にする。
+    return GetWorld()->LineTraceSingleByChannel(
+        OutHit,
         Start,
         End,
         ECC_Visibility,
         Params
     );
+}
+
+void APlayerCharacter::Interact()
+{
+   
+
+    FHitResult Hit;
+    
+    bool bHit = PerformCameraLineTrace(Hit, LineTraceEnd);
 
     if (bHit)
     {
         ABaseItem* Item = Cast<ABaseItem>(Hit.GetActor());
-        if (Item)
+        if (Item)//Hitしたのがアイテムだったら
         {
-            Item->OnPickedUp(this);
+            Item->OnPickedUp(this);//取得を実行
         }
     }
+}
+
+void APlayerCharacter::TraceForItem()
+{
+    FHitResult Hit;
+
+    bool bHit = PerformCameraLineTrace(Hit, LineTraceEnd);
+
+    ABaseItem* HitItem = bHit ? Cast<ABaseItem>(Hit.GetActor()) : nullptr;
+
+    if (HitItem != CurrentItem)
+    {
+        CurrentItem = HitItem;
+        UpdateInteractUI(CurrentItem);
+    }
+}
+
+void APlayerCharacter::UpdateInteractUI(ABaseItem* NewItem)
+{
+   
+        if (!InteractWidget) return;
+
+        if (NewItem)
+        {
+            FString Text = NewItem->ItemName.ToString() + NewItem->InteractText.ToString();
+
+            InteractWidget->SetInteractText(Text);
+            InteractWidget->SetVisibility(ESlateVisibility::Visible);
+        }
+        else
+        {
+            InteractWidget->SetVisibility(ESlateVisibility::Hidden);
+        }
+    
 }

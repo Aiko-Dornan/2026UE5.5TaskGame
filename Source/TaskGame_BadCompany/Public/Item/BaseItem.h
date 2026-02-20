@@ -18,7 +18,10 @@ protected:
     UStaticMeshComponent* Mesh;
 
 public:
-
+    UPROPERTY(EditDefaultsOnly, BlueprintReadWrite ,Category= "Item")
+    FText ItemName;
+    UPROPERTY(EditAnywhere, BlueprintReadWrite)
+    FText InteractText = FText::FromString(":Eで拾う");
     // 拾われたときの処理（派生でオーバーライド可能）
     virtual void OnPickedUp(class APlayerCharacter* Player);
 };
