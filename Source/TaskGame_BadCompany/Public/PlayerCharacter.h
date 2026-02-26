@@ -1,4 +1,4 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 #pragma once
 
@@ -8,6 +8,8 @@
 #include "Components/CapsuleComponent.h"
 #include"Item/BaseItem.h"
 #include"InteractWidget.h"
+#include "Perception/AIPerceptionStimuliSourceComponent.h"
+#include "Perception/AISense_Sight.h" 
 #include "PlayerCharacter.generated.h"
 
 class UInputMappingContext;
@@ -24,7 +26,7 @@ public:
     APlayerCharacter();
 
     
-    //����͊֐�
+    //非入力関数
     UFUNCTION()
     bool PerformCameraLineTrace(FHitResult& OutHit, float TraceDistance);
     void TraceForItem();
@@ -33,7 +35,7 @@ protected:
     virtual void BeginPlay() override;
     virtual void SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) override;
 
-    // ===== �J���� =====
+    // ===== カメラ =====
     UPROPERTY(VisibleAnywhere)
     UCameraComponent* FPSCamera;
 
@@ -53,9 +55,11 @@ protected:
     UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Input")
     UInputAction* InteractAction;
 
-   
+    // AIに検知されるためのコンポーネント
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "AI")
+    UAIPerceptionStimuliSourceComponent* StimuliSource;
 
-    // ===== ���͊֐� =====
+    // ===== 入力関数 =====
     void Move(const FInputActionValue& Value);
     void Look(const FInputActionValue& Value);
     void Interact();
@@ -76,4 +80,5 @@ private:
 
     UPROPERTY()
     UInteractWidget* InteractWidget;
+
 };

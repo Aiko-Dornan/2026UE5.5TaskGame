@@ -1,4 +1,4 @@
-#pragma once
+ï»¿#pragma once
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
@@ -11,7 +11,7 @@ class TASKGAME_BADCOMPANY_API ABaseItem : public AActor
 
 public:
     ABaseItem();
-
+    void SetHighlight(bool bEnable);
 protected:
 
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
@@ -19,9 +19,9 @@ protected:
 
 public:
     UPROPERTY(EditDefaultsOnly, BlueprintReadWrite ,Category= "Item")
-    FText ItemName;
+    FText ItemName = FText::FromString("Nameless");
     UPROPERTY(EditAnywhere, BlueprintReadWrite)
-    FText InteractText = FText::FromString(":E‚ÅE‚¤");
-    // E‚í‚ê‚½‚Æ‚«‚Ìˆ—i”h¶‚ÅƒI[ƒo[ƒ‰ƒCƒh‰Â”\j
+    FText InteractText = FText::FromString(":Eã§æ‹¾ã†");
+    // æ‹¾ã‚ã‚ŒãŸã¨ãã®å‡¦ç†ï¼ˆæ´¾ç”Ÿã§ã‚ªãƒ¼ãƒãƒ¼ãƒ©ã‚¤ãƒ‰å¯èƒ½ï¼‰
     virtual void OnPickedUp(class APlayerCharacter* Player);
 };

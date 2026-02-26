@@ -18,3 +18,12 @@ void ABaseItem::OnPickedUp(APlayerCharacter* Player)
     // 基本は消えるだけ
     Destroy();
 }
+
+void ABaseItem::SetHighlight(bool bEnable)
+{
+    if (Mesh)
+    {
+        Mesh->SetRenderCustomDepth(bEnable);
+        Mesh->SetCustomDepthStencilValue(1); // ステンシル値（固定でOK）
+    }
+}

@@ -23,6 +23,12 @@ APlayerCharacter::APlayerCharacter()
     bUseControllerRotationPitch = true;
     bUseControllerRotationRoll = false;
  
+    // StimuliSource 作成
+    StimuliSource = CreateDefaultSubobject<UAIPerceptionStimuliSourceComponent>(TEXT("StimuliSource"));
+    // Sight登録
+    StimuliSource->RegisterForSense(UAISense_Sight::StaticClass());
+    // システムへ登録
+    StimuliSource->RegisterWithPerceptionSystem();
 }
 
 void APlayerCharacter::BeginPlay()
@@ -141,14 +147,26 @@ void APlayerCharacter::Interact()
 void APlayerCharacter::TraceForItem()
 {
     FHitResult Hit;
-
     bool bHit = PerformCameraLineTrace(Hit, LineTraceEnd);
 
     ABaseItem* HitItem = bHit ? Cast<ABaseItem>(Hit.GetActor()) : nullptr;
 
     if (HitItem != CurrentItem)
     {
+        //// 前のアイテムのハイライト解除
+        //if (CurrentItem)
+        //{
+        //    CurrentItem->SetHighlight(false);
+        //}
+
         CurrentItem = HitItem;
+
+        /* //新しいアイテムをハイライト
+        if (CurrentItem)
+        {
+            CurrentItem->SetHighlight(true);
+        }*/
+
         UpdateInteractUI(CurrentItem);
     }
 }
