@@ -5,7 +5,18 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "Components/CapsuleComponent.h"
 #include "EnemyCharacter.generated.h"
+
+
+UENUM()
+enum class EEnemyMoveState : uint8
+{
+    Idle,
+    Caution,
+    Chase
+};
+
 
 UCLASS()
 class TASKGAME_BADCOMPANY_API AEnemyCharacter : public ACharacter
@@ -15,13 +26,19 @@ class TASKGAME_BADCOMPANY_API AEnemyCharacter : public ACharacter
 public:
     AEnemyCharacter();
     virtual void Tick(float DeltaTime) override;
+    void SetMoveState(EEnemyMoveState NewState);
 
 protected:
     virtual void BeginPlay() override;
 
 public:
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Enemy")
-    float EnemyMoveSpeed = 400.0f;//敵の移動速度
+    //敵の移動速度
+    UPROPERTY(EditAnywhere,/* BlueprintReadWrite,*/ Category = "Enemy")
+    float EnemyMoveSpeed[3] = { 
+        300.0f,//Idle
+        10.0f,//Cation
+        500.0f//Chase
+                              };
 
     //敵キャラの認識範囲
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AI")

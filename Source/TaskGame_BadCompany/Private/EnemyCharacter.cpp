@@ -13,8 +13,10 @@ AEnemyCharacter::AEnemyCharacter()
     GetCharacterMovement()->bOrientRotationToMovement = true;
     bUseControllerRotationYaw = false;
 
-    // 移動速度（お好みで）
-    GetCharacterMovement()->MaxWalkSpeed = EnemyMoveSpeed;
+    // 移動速度
+    GetCharacterMovement()->MaxWalkSpeed = EnemyMoveSpeed[0];
+    GetCharacterMovement()->bEnablePhysicsInteraction = false;
+    GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_GameTraceChannel1, ECR_Ignore);
 }
 
 void AEnemyCharacter::BeginPlay()
@@ -30,4 +32,30 @@ void AEnemyCharacter::BeginPlay()
 void AEnemyCharacter::Tick(float DeltaTime)
 {
     Super::Tick(DeltaTime);
+}
+
+void AEnemyCharacter::SetMoveState(EEnemyMoveState NewState)
+{
+    switch (NewState)
+    {
+    case EEnemyMoveState::Idle:
+        GetCharacterMovement()->MaxWalkSpeed = EnemyMoveSpeed[0];
+        bUseControllerRotationYaw = false;
+        GetCharacterMovement()->bOrientRotationToMovement = true;
+        break;
+
+    case EEnemyMoveState::Caution:
+        GetCharacterMovement()->MaxWalkSpeed = EnemyMoveSpeed[1];
+        // ★ 回転無効化
+        bUseControllerRotationYaw = false;
+        GetCharacterMovement()->bOrientRotationToMovement = true;
+        break;
+
+    case EEnemyMoveState::Chase:
+        GetCharacterMovement()->MaxWalkSpeed = EnemyMoveSpeed[2];
+        // ★ 回転無効化
+        bUseControllerRotationYaw = true;
+        GetCharacterMovement()->bOrientRotationToMovement = true;
+        break;
+    }
 }

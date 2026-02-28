@@ -16,6 +16,7 @@ protected:
 
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
     UStaticMeshComponent* Mesh;
+    
 
 public:
     UPROPERTY(EditDefaultsOnly, BlueprintReadWrite ,Category= "Item")

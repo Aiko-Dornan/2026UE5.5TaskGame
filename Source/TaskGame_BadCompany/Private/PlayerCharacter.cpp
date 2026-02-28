@@ -3,6 +3,7 @@
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
 #include "InputMappingContext.h"
+#include"EnemyAIController.h"
 #include "InputAction.h"
 
 APlayerCharacter::APlayerCharacter()
@@ -29,6 +30,11 @@ APlayerCharacter::APlayerCharacter()
     StimuliSource->RegisterForSense(UAISense_Sight::StaticClass());
     // システムへ登録
     StimuliSource->RegisterWithPerceptionSystem();
+
+    GetCharacterMovement()->bEnablePhysicsInteraction = false;
+    GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_GameTraceChannel1, ECR_Ignore);
+
+    Tags.Add("Player");
 }
 
 void APlayerCharacter::BeginPlay()
@@ -65,6 +71,27 @@ void APlayerCharacter::BeginPlay()
         this,
         &APlayerCharacter::TraceForItem,
         0.05f,   // 0.05秒ごと
+        true
+    );
+
+    if (DetectionWidgetClass)
+    {
+        DetectionWidget = CreateWidget<UDetectionWidget>(
+            GetWorld(),
+            DetectionWidgetClass
+        );
+
+        if (DetectionWidget)
+        {
+            DetectionWidget->AddToViewport();
+        }
+    }
+
+    GetWorldTimerManager().SetTimer(
+        DetectionUITimer,
+        this,
+        &APlayerCharacter::UpdateDetectionUI,
+        0.1f,
         true
     );
 
@@ -188,4 +215,37 @@ void APlayerCharacter::UpdateInteractUI(ABaseItem* NewItem)
             InteractWidget->SetVisibility(ESlateVisibility::Hidden);
         }
     
+}
+
+
+
+float APlayerCharacter::GetMaxEnemyDetection() const
+{
+    float MaxValue = 0.f;
+
+    TArray<AActor*> FoundControllers;
+    UGameplayStatics::GetAllActorsOfClass(
+        GetWorld(),
+        AEnemyAIController::StaticClass(),
+        FoundControllers
+    );
+
+    for (AActor* Actor : FoundControllers)
+    {
+        AEnemyAIController* AI = Cast<AEnemyAIController>(Actor);
+        if (!AI) continue;
+
+        float Value = AI->GetDetectionPercent();
+        MaxValue = FMath::Max(MaxValue, Value);
+    }
+
+    return MaxValue;
+}
+
+void APlayerCharacter::UpdateDetectionUI()
+{
+    if (!DetectionWidget) return;
+
+    float MaxValue = GetMaxEnemyDetection();
+    DetectionWidget->UpdateDetection(MaxValue);
 }

@@ -6,8 +6,10 @@
 #include "GameFramework/Character.h"
 #include "InputActionValue.h"
 #include "Components/CapsuleComponent.h"
+#include "GameFramework/CharacterMovementComponent.h"
 #include"Item/BaseItem.h"
 #include"InteractWidget.h"
+#include"DetectionWidget.h"
 #include "Perception/AIPerceptionStimuliSourceComponent.h"
 #include "Perception/AISense_Sight.h" 
 #include "PlayerCharacter.generated.h"
@@ -16,6 +18,8 @@ class UInputMappingContext;
 class UInputAction;
 class UCameraComponent;
 class UInteractWidget;
+class UDetectionWidget;
+class UCharacterMovementComponent;
 
 UCLASS()
 class TASKGAME_BADCOMPANY_API APlayerCharacter : public ACharacter
@@ -31,6 +35,11 @@ public:
     bool PerformCameraLineTrace(FHitResult& OutHit, float TraceDistance);
     void TraceForItem();
     void UpdateInteractUI(ABaseItem* NewItem);
+    //----//
+    //敵の感知具合を受け取る関数
+    float GetMaxEnemyDetection() const;
+    void UpdateDetectionUI();
+
 protected:
     virtual void BeginPlay() override;
     virtual void SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) override;
@@ -71,14 +80,23 @@ public:
     UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Player")
     float LineTraceEnd = 300.0f;
    
+   
+
+   
 
 private:
     FTimerHandle TraceTimerHandle;
 
     UPROPERTY(EditDefaultsOnly, Category = "UI")
     TSubclassOf<UInteractWidget> InteractWidgetClass;
-
     UPROPERTY()
     UInteractWidget* InteractWidget;
+
+
+    UPROPERTY(EditAnywhere, Category = "UI")
+    TSubclassOf<UDetectionWidget> DetectionWidgetClass;
+    UPROPERTY()
+    UDetectionWidget* DetectionWidget;
+    FTimerHandle DetectionUITimer;
 
 };

@@ -5,6 +5,7 @@
 
 #include "Perception/AIPerceptionComponent.h"
 #include "Perception/AISenseConfig_Sight.h"
+#include"Perception/AISenseConfig_Hearing.h"
 #include "DrawDebugHelpers.h"
 #include"EnemyCharacter.h"
 
@@ -16,7 +17,7 @@ AEnemyAIController::AEnemyAIController()
     SetPerceptionComponent(*PerceptionComp);
 
     SightConfig = CreateDefaultSubobject<UAISenseConfig_Sight>(TEXT("SightConfig"));
-
+    HearingConfig = CreateDefaultSubobject<UAISenseConfig_Hearing>(TEXT("HearingConfig"));
 
     PerceptionComp->OnTargetPerceptionUpdated.AddDynamic(
         this,
@@ -54,6 +55,7 @@ void AEnemyAIController::BeginPlay()
 
 void AEnemyAIController::SetupPerception()
 {
+    //視界
     SightConfig->SightRadius = SightRadius;
     SightConfig->LoseSightRadius = LoseSightRadius;
     SightConfig->PeripheralVisionAngleDegrees = PeripheralVisionAngle;
@@ -63,6 +65,16 @@ void AEnemyAIController::SetupPerception()
     SightConfig->DetectionByAffiliation.bDetectEnemies = true;
     SightConfig->DetectionByAffiliation.bDetectNeutrals = true;
     SightConfig->DetectionByAffiliation.bDetectFriendlies = true;
+
+    //聴覚
+    HearingConfig->HearingRange = 2000.f;
+    HearingConfig->SetMaxAge(2.f);
+
+    HearingConfig->DetectionByAffiliation.bDetectEnemies = true;
+    HearingConfig->DetectionByAffiliation.bDetectNeutrals = true;
+    HearingConfig->DetectionByAffiliation.bDetectFriendlies = true;
+
+    PerceptionComp->ConfigureSense(*HearingConfig);
 
     PerceptionComp->ConfigureSense(*SightConfig);
     PerceptionComp->SetDominantSense(SightConfig->GetSenseImplementation());
@@ -78,11 +90,11 @@ void AEnemyAIController::UpdateLOD()
     float Distance = FVector::Dist(Player->GetActorLocation(), GetPawn()->GetActorLocation());
 
     if (Distance < SightRadius)
-        UpdateInterval = 0.05f;
+        UpdateInterval = UpdateIntevalTime [0];
     else if (Distance < SightRadius*2)
-        UpdateInterval = 0.3f;
+        UpdateInterval = UpdateIntevalTime[1];
     else
-        UpdateInterval = 1.0f;
+        UpdateInterval = UpdateIntevalTime[2];
 
     // タイマー更新
     GetWorld()->GetTimerManager().ClearTimer(AITickHandle);
@@ -99,23 +111,80 @@ void AEnemyAIController::UpdateAI()
 {
     UpdateLOD();
 
+    AEnemyCharacter* EnemyChar = Cast<AEnemyCharacter>(GetPawn());
+
     switch (CurrentState)
     {
     case EEnemyState::Idle:
-       /* if (bCurrentlySeeingTarget)
-        {
-            DetectionValue += 20.f;
+      
 
-            if (DetectionValue >= DetectionThreshold)
-            {
-                CurrentState = EEnemyState::Chase;
-                MoveToActor(TargetActor);
-            }
-        }
-        else
+        //if (bCurrentlySeeingTarget && TargetActor)
+        //{
+        //    float Distance = FVector::Dist(
+        //        GetPawn()->GetActorLocation(),
+        //        TargetActor->GetActorLocation()
+        //    );
+
+        //    // 距離を0〜1に正規化
+        //    float Alpha = FMath::Clamp(
+        //        (Distance - MinDetectDistance) /
+        //        (MaxDetectDistance - MinDetectDistance),
+        //        0.f,
+        //        1.f
+        //    );
+
+        //    // 距離が近いほどDetectSpeedが高くなる
+        //    float DetectSpeed = FMath::Lerp(
+        //        MinDetectSpeed,
+        //        MaxDetectSpeed,
+        //        Alpha
+        //    );
+
+        //    DetectionValue += DetectSpeed * UpdateInterval;
+
+        //    if (DetectionValue >= DetectionThreshold)
+        //    {
+        //        CurrentState = EEnemyState::Chase;
+        //        MoveToActor(TargetActor, 100.f);
+        //    }
+        //}
+        //else
+
+        /*if (bCurrentlySeeingTarget && TargetActor)
         {
-            DetectionValue = FMath::Max(0.f, DetectionValue - 10.f);
+            CurrentState = EEnemyState::Caution;
+
+            if (EnemyChar)
+                EnemyChar->SetMoveState(EEnemyMoveState::Caution);
         }*/
+
+        {
+            DetectionValue = FMath::Max(
+                0.f,
+                DetectionValue - DetectionDecreaseAmount * UpdateInterval*3
+            );
+        }
+
+      /*  float DistSq = FVector::DistSquared(
+            GetPawn()->GetActorLocation(),
+            TargetActor->GetActorLocation()
+        );
+
+        const float ChaseRangeSq = 1000.f * 1000.f;
+
+        if (DistSq < ChaseRangeSq)
+        {
+            DetectionValue += 30.f * UpdateInterval;
+        }
+
+        if (DetectionValue >= DetectionThreshold)
+        {
+            CurrentState = EEnemyState::Chase;
+            MoveToActor(TargetActor, 100.f);
+        }*/
+
+        break;
+    case EEnemyState::Caution:
 
         if (bCurrentlySeeingTarget && TargetActor)
         {
@@ -144,24 +213,157 @@ void AEnemyAIController::UpdateAI()
             if (DetectionValue >= DetectionThreshold)
             {
                 CurrentState = EEnemyState::Chase;
-                MoveToActor(TargetActor, 100.f);
+               
             }
+            else
+            {
+                MoveToLocation(FirstDetectLocation);
+            }
+
+
+            if (bIsScanning)
+            {
+                // ★ スキャン中に再視認したらChase
+                if (bCurrentlySeeingTarget && TargetActor)
+                {
+                    /* CurrentState = EEnemyState::Chase;
+
+                     if (EnemyChar)
+                         EnemyChar->SetMoveState(EEnemyMoveState::Chase);
+
+                     MoveToActor(TargetActor, 100.f);*/
+
+                    UE_LOG(LogTemp, Warning, TEXT("%s:dokoniirunda..?"), *GetName());
+
+                    bHasStoredFirstDetectLocation = false;
+
+                    if (/*CurrentState != EEnemyState::Chase && */!bHasStoredFirstDetectLocation)
+                    {
+                        FirstDetectLocation = TargetActor->GetActorLocation();
+                        bHasStoredFirstDetectLocation = true;
+                        UE_LOG(LogTemp, Warning, TEXT("%s:sokoniitaka!."), *GetName());
+                    }
+
+                    MoveToLocation(FirstDetectLocation);
+
+                    bIsScanning = false;
+                }
+
+            }
+
         }
         else
         {
             DetectionValue = FMath::Max(
                 0.f,
-                DetectionValue - DetectionDecreaseAmount * UpdateInterval
+                DetectionValue - DetectionDecreaseAmount * UpdateInterval * 2
             );
+
+           
+           
+
+            if (!bIsScanning)//スキャンしてないなら
+            {
+                MoveToLocation(FirstDetectLocation);
+
+                float Distance = FVector::Dist(
+                    GetPawn()->GetActorLocation(),
+                    FirstDetectLocation
+                );
+
+                if (Distance < 50.f)
+                {
+                    StopMovement();
+
+                    bIsScanning = true;
+                    ScanTimer = 0.f;
+
+                    ScanBaseYaw = GetPawn()->GetActorRotation().Yaw;
+                    ScanCurrentYaw = ScanBaseYaw;
+                    ScanDirection = 1;
+
+                }
+            }
+            else
+            {
+                // スキャン処理
+                ScanTimer += UpdateInterval;
+
+                ScanCurrentYaw += ScanDirection * ScanSpeed * UpdateInterval;
+
+                // 上限チェック
+                if (ScanCurrentYaw >= ScanBaseYaw + ScanRange)
+                {
+                    ScanCurrentYaw = ScanBaseYaw + ScanRange;
+                    ScanDirection = -1;
+                }
+                else if (ScanCurrentYaw <= ScanBaseYaw - ScanRange)
+                {
+                    ScanCurrentYaw = ScanBaseYaw - ScanRange;
+                    ScanDirection = 1;
+                }
+
+                APawn* MyPawn = GetPawn();
+                if (!MyPawn) return;
+
+                FRotator NewRot = GetPawn()->GetActorRotation();
+                NewRot.Yaw = ScanCurrentYaw;
+                GetPawn()->SetActorRotation(NewRot);
+                MyPawn->GetController()->SetControlRotation(NewRot);
+
+               
+
+              
+
+                // スキャン終了
+                if (ScanTimer >= ScanDuration)
+                {
+                    CurrentState = EEnemyState::Idle;
+
+                    if (EnemyChar)
+                        EnemyChar->SetMoveState(EEnemyMoveState::Idle);
+
+                    bHasStoredFirstDetectLocation = false;
+                    bIsScanning = false;
+                }
+            }
+
+
+            if (DetectionValue<=0.0f)
+            {
+                CurrentState = EEnemyState::Idle;
+
+                if (EnemyChar)
+                    EnemyChar->SetMoveState(EEnemyMoveState::Idle);
+                // リセット
+                bHasStoredFirstDetectLocation = false;
+              //  bLockLastKnownLocation = false;
+            }
+
         }
+
+
 
         break;
 
     case EEnemyState::Chase:
         if (!bCurrentlySeeingTarget)
         {
-            CurrentState = EEnemyState::Idle;
-            StopMovement();
+            CurrentState = EEnemyState::Caution;
+
+            if (EnemyChar)
+                EnemyChar->SetMoveState(EEnemyMoveState::Caution);
+
+
+            //StopMovement();
+            MoveToLocation(LastKnownLocation);
+            bIsScanning = false;
+        }
+        else
+        {
+            if (EnemyChar)
+                EnemyChar->SetMoveState(EEnemyMoveState::Chase);
+            MoveToActor(TargetActor, 100.f);
         }
         break;
     }
@@ -219,20 +421,73 @@ void AEnemyAIController::OnPossess(APawn* InPawn)
 void AEnemyAIController::OnTargetPerceptionUpdated(AActor* Actor, FAIStimulus Stimulus)
 {
     if (!Actor) return;
-    if (Stimulus.Type == UAISense::GetSenseID<UAISense_Sight>())
+    //APlayerCharacter* Player = Cast<APlayerCharacter>(Actor);
+    //if (!Player) return;  // プレイヤー以外は無視
+    if (Stimulus.Type == UAISense::GetSenseID<UAISense_Sight>()/*&&Actor==Player*/)
     {
         if (Stimulus.WasSuccessfullySensed())
         {
+            if (Actor->ActorHasTag("Player"))
+            {
+                bCurrentlySeeingTarget = true;
+                TargetActor = Actor; 
+               LastKnownLocation = Actor->GetActorLocation();
+               //LockedRotation = Actor->GetActorRotation();
+
+                // ★ Cautionでまだ保存していないなら保存
+               if (CurrentState != EEnemyState::Chase && !bHasStoredFirstDetectLocation)
+               {
+                   FirstDetectLocation = Actor->GetActorLocation();
+                   bHasStoredFirstDetectLocation = true;
+               }
+
+               /* if (!bLockLastKnownLocation)
+                {
+                    LastKnownLocation = Actor->GetActorLocation();
+                }*/
+
+               CurrentState = EEnemyState::Caution;
+            }
+
             // プレイヤー発見 → 追跡
-            bCurrentlySeeingTarget = true;
-            TargetActor = Actor;
+           // bCurrentlySeeingTarget = true;
+            //TargetActor = Actor;
+            //TargetActor = Player;
             UE_LOG(LogTemp, Warning, TEXT("%s:AI initialized successfully."), *Actor->GetName());
         }
         else
         {
             // 見失った
-            bCurrentlySeeingTarget = false;
+            if (Actor == TargetActor)
+            {
+                bCurrentlySeeingTarget = false;
+                // ★ ここでロック開始
+              //  bLockLastKnownLocation = true;
+                LastKnownLocation = Stimulus.StimulusLocation;
+                TargetActor = nullptr;
+            }
+          //  bCurrentlySeeingTarget = false;
             UE_LOG(LogTemp, Warning, TEXT("AI initialized faied."));
         }
     }
+    // ===== 聴覚 =====
+    else if (Stimulus.Type == UAISense::GetSenseID<UAISense_Hearing>())
+    {
+        if (Stimulus.WasSuccessfullySensed())
+        {
+            FVector SoundLocation = Stimulus.StimulusLocation;
+
+            // 音源へ移動
+            MoveToLocation(SoundLocation);
+
+            CurrentState = EEnemyState::Caution;
+        }
+    }
+
+}
+
+float AEnemyAIController::GetDetectionPercent() const
+{
+    if (DetectionThreshold <= 0.f) return 0.f;
+    return DetectionValue / DetectionThreshold;
 }
