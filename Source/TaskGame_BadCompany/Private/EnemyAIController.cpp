@@ -7,7 +7,8 @@
 #include "Perception/AISenseConfig_Sight.h"
 #include"Perception/AISenseConfig_Hearing.h"
 #include "DrawDebugHelpers.h"
-#include"EnemyCharacter.h"
+#include "Kismet/KismetSystemLibrary.h"
+#include "EnemyCharacter.h"
 
 AEnemyAIController::AEnemyAIController()
 {
@@ -65,6 +66,7 @@ void AEnemyAIController::SetupPerception()
     SightConfig->DetectionByAffiliation.bDetectEnemies = true;
     SightConfig->DetectionByAffiliation.bDetectNeutrals = true;
     SightConfig->DetectionByAffiliation.bDetectFriendlies = true;
+   
 
     //聴覚
     HearingConfig->HearingRange = 2000.f;
@@ -184,39 +186,99 @@ void AEnemyAIController::UpdateAI()
         }*/
 
         break;
-    case EEnemyState::Caution:
+    case EEnemyState::StandBy:
 
-        if (bCurrentlySeeingTarget && TargetActor)
+        UE_LOG(LogTemp, Warning, TEXT("%s: StandBy"), *GetName());
+
+        if (bIsAlertWaiting)
+        {
+            AlertWaitTimer += UpdateInterval;
+
+            if (AlertWaitTimer >= AlertWaitTime)
+            {
+                bIsAlertWaiting = false;
+
+                // ★ 視界にいなくても必ず調査へ
+                CurrentState = EEnemyState::Investigate;
+                bHasStoredFirstDetectLocation = false;
+                UE_LOG(LogTemp, Warning, TEXT("%s: StandBy -> Investigate"), *GetName());
+            }
+            else
+            {
+                return; // 停止継続
+            }
+        }
+
+    break;
+
+    case EEnemyState::Investigate:
+
+      // UE_LOG(LogTemp, Warning, TEXT("%s: Investigating"), *GetName());
+
+        if (/*CurrentState != EEnemyState::Chase && */!bHasStoredFirstDetectLocation)
+        {
+            // ★ 移動開始（1回だけ呼ぶように制御してもOK）
+            MoveToLocation(FirstDetectLocation);
+            bHasStoredFirstDetectLocation = true;
+        }
+       
+       
+
+        // 距離チェック
         {
             float Distance = FVector::Dist(
                 GetPawn()->GetActorLocation(),
-                TargetActor->GetActorLocation()
+                FirstDetectLocation
             );
 
-            // 距離を0〜1に正規化
-            float Alpha = FMath::Clamp(
-                (Distance - MinDetectDistance) /
-                (MaxDetectDistance - MinDetectDistance),
-                0.f,
-                1.f
-            );
-
-            // 距離が近いほどDetectSpeedが高くなる
-            float DetectSpeed = FMath::Lerp(
-                MinDetectSpeed,
-                MaxDetectSpeed,
-                Alpha
-            );
-
-            DetectionValue += DetectSpeed * UpdateInterval;
-
-            if (DetectionValue >= DetectionThreshold)
+            // 再視認したらゲージ増加
+            if (bCurrentlySeeingTarget)
             {
-                CurrentState = EEnemyState::Chase;
+                DetectionValueAdd();
+               // UE_LOG(LogTemp, Warning, TEXT("%s: Investigate -> Chase"), *GetName());
+                //break;
+            }
+
+            // ★ 到達したらCautionへ
+            if (Distance < 100.f)
+            {
+                CurrentState = EEnemyState::Caution;
+                UE_LOG(LogTemp, Warning, TEXT("%s: Investigate -> Caution"), *GetName());
+            }
+        }
+
+        break;
+
+    case EEnemyState::Caution:
+
+       
+
+        if (bCurrentlySeeingTarget && TargetActor)
+        {
+            DetectionValueAdd();
+
+            if (DetectionValue >= DetectionThreshold)//発見ゲージが最大までたまったら
+            {
+                if (CurrentState != EEnemyState::Chase)
+                {
+                    CurrentState = EEnemyState::Chase;
+
+                    bIsFirstDiscoverer = true;
+
+                    if (bIsFirstDiscoverer)
+                    {
+                        AlertNearbyAllies();
+                    }
+
+                }
+
+                //CurrentState = EEnemyState::Chase;
                
             }
             else
             {
+              
+
                 MoveToLocation(FirstDetectLocation);
             }
 
@@ -237,16 +299,22 @@ void AEnemyAIController::UpdateAI()
 
                     bHasStoredFirstDetectLocation = false;
 
+                  
+
                     if (/*CurrentState != EEnemyState::Chase && */!bHasStoredFirstDetectLocation)
                     {
                         FirstDetectLocation = TargetActor->GetActorLocation();
-                        bHasStoredFirstDetectLocation = true;
+                       
                         UE_LOG(LogTemp, Warning, TEXT("%s:sokoniitaka!."), *GetName());
                     }
 
-                    MoveToLocation(FirstDetectLocation);
+                   // MoveToLocation(FirstDetectLocation);
 
                     bIsScanning = false;
+
+                    CurrentState = EEnemyState::StandBy;
+
+                    break;
                 }
 
             }
@@ -434,6 +502,23 @@ void AEnemyAIController::OnTargetPerceptionUpdated(AActor* Actor, FAIStimulus St
                LastKnownLocation = Actor->GetActorLocation();
                //LockedRotation = Actor->GetActorRotation();
 
+               if (CurrentState == EEnemyState::Idle|| CurrentState == EEnemyState::Caution)
+               {
+                   
+
+                   CurrentState = EEnemyState::StandBy;
+
+                   bIsAlertWaiting = true;
+                   AlertWaitTimer = 0.f;
+
+                   FirstDetectLocation = Actor->GetActorLocation();
+                   bHasStoredFirstDetectLocation = true;
+
+                   StopMovement();
+
+                  
+               }
+
                 // ★ Cautionでまだ保存していないなら保存
                if (CurrentState != EEnemyState::Chase && !bHasStoredFirstDetectLocation)
                {
@@ -446,7 +531,7 @@ void AEnemyAIController::OnTargetPerceptionUpdated(AActor* Actor, FAIStimulus St
                     LastKnownLocation = Actor->GetActorLocation();
                 }*/
 
-               CurrentState = EEnemyState::Caution;
+              // CurrentState = EEnemyState::Caution;
             }
 
             // プレイヤー発見 → 追跡
@@ -486,8 +571,86 @@ void AEnemyAIController::OnTargetPerceptionUpdated(AActor* Actor, FAIStimulus St
 
 }
 
+void AEnemyAIController::OnAlertedByAlly(AActor* PlayerActor)
+{
+    if (CurrentState == EEnemyState::Chase) return;
+
+    TargetActor = PlayerActor;
+    CurrentState = EEnemyState::Chase;
+    DetectionValue = DetectionThreshold;
+    bIsFirstDiscoverer = false; // 第一発見者以外の連鎖防止
+}
+
+void AEnemyAIController::AlertNearbyAllies()
+{
+    if (!bIsFirstDiscoverer) return;
+    if (bHasAlertedAllies) return;
+
+    bHasAlertedAllies = true;
+
+    TArray<AActor*> OverlappedActors;
+
+    TArray<TEnumAsByte<EObjectTypeQuery>> ObjectTypes;
+    ObjectTypes.Add(UEngineTypes::ConvertToObjectType(ECC_Pawn));
+
+    TArray<AActor*> IgnoreActors;
+    IgnoreActors.Add(GetPawn());
+
+    UKismetSystemLibrary::SphereOverlapActors(
+        GetWorld(),
+        GetPawn()->GetActorLocation(),
+        AlertRadius,
+        ObjectTypes,
+        AEnemyCharacter::StaticClass(),
+        IgnoreActors,
+        OverlappedActors
+    );
+
+    for (AActor* Actor : OverlappedActors)
+    {
+        AEnemyCharacter* OtherEnemy = Cast<AEnemyCharacter>(Actor);
+        if (!OtherEnemy) continue;
+
+        AEnemyAIController* OtherAI =
+            Cast<AEnemyAIController>(OtherEnemy->GetController());
+
+        if (!OtherAI) continue;
+
+        OtherAI->OnAlertedByAlly(TargetActor);
+    }
+}
+
 float AEnemyAIController::GetDetectionPercent() const
 {
     if (DetectionThreshold <= 0.f) return 0.f;
     return DetectionValue / DetectionThreshold;
+}
+
+void AEnemyAIController::DetectionValueAdd()
+{
+
+    {//絶対関数化してやる
+        float Distance = FVector::Dist(
+            GetPawn()->GetActorLocation(),
+            TargetActor->GetActorLocation()
+        );
+
+        // 距離を0〜1に正規化
+        float Alpha = FMath::Clamp(
+            (Distance - MinDetectDistance) /
+            (MaxDetectDistance - MinDetectDistance),
+            0.f,
+            1.f
+        );
+
+        // 距離が近いほどDetectSpeedが高くなる
+        float DetectSpeed = FMath::Lerp(
+            MinDetectSpeed,
+            MaxDetectSpeed,
+            Alpha
+        );
+
+        DetectionValue += DetectSpeed * UpdateInterval;
+    }
+
 }

@@ -19,7 +19,9 @@ enum class EEnemyState : uint8
 {
     Idle,
     Caution,
-    Chase
+    Chase,
+    StandBy,//プレイヤーがいた場所まで移動するまでの待機状態(疑惑)
+    Investigate,
 };
 
 /**
@@ -40,9 +42,17 @@ public:
 
     //敵の感知具合を表す関数
     float GetDetectionPercent() const;
+
+    //敵から敵にプレイヤーの発見を伝える関数
+    void AlertNearbyAllies();
+    //プレイヤーを発見したことを他の敵から受け取る用の関数
+    void OnAlertedByAlly(AActor* PlayerActor);
+
 protected:
     virtual void BeginPlay() override;
     virtual void Tick(float DeltaTime) override;
+
+    void DetectionValueAdd();
 
 private:
     UPROPERTY()
@@ -119,11 +129,21 @@ private:
 
     void SetupPerception();
 private:
-   // APawn* Player;
+  
+    //最後にプレイヤーを発見した位置を保管してあるかどうか
     bool bLockLastKnownLocation = false;
 
+    //最初にプレイヤーを発見した位置
     FVector FirstDetectLocation;
+    //最初にプレイヤーを発見した時用のフラグ
     bool bHasStoredFirstDetectLocation = false;
+
+    // ★ 初動停止用
+    bool bIsAlertWaiting = false;
+    float AlertWaitTimer = 0.f;
+
+    UPROPERTY(EditAnywhere, Category = "AI|Alert")
+    float AlertWaitTime = 2.0f; // 何秒止まるか
 
     //Cation時にプレイヤーがいた場所までついた時の処理するスキャン用の変数
     bool bIsScanning = false;       //スキャン可かどうか
@@ -139,6 +159,12 @@ private:
 
 public:
    
-
+    bool bIsFirstDiscoverer = false; // 第一発見者か
+    bool bHasAlertedAllies = false;  // すでに通報したか
+    UPROPERTY(EditAnywhere,BlueprintReadWrite, Category = "AI|Detection")
+    float AlertRadius=1000.0f;      //第一発見者から他の敵に連鎖する範囲
    
+   
+
+
 };
