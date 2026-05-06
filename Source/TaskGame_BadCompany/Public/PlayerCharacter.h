@@ -79,8 +79,8 @@ public:
     ABaseItem* CurrentItem;
     UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Player")
     float LineTraceEnd = 300.0f;
-   
-   
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Player")
+    bool bIsInRestrictedArea = false;
 
    
 

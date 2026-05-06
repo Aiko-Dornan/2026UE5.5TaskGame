@@ -6,6 +6,7 @@
 #include "GameFramework/Character.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Components/CapsuleComponent.h"
+#include"Engine/TargetPoint.h"
 #include "EnemyCharacter.generated.h"
 
 
@@ -51,4 +52,12 @@ public:
     float SetMaxAge =3.0f;              // 記憶時間
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AI")
     float DetectionThreshold = 300.0f;
+
+   //Patroll
+    UPROPERTY(EditAnywhere,BlueprintReadWrite, Category = "AI|Patrol")
+    TArray<ATargetPoint*> EnemyPatrolPoints;//巡回ポイント用のアクタ。敵はこれを目指す。
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AIState")
+    int StateNum = 0;
+
 };
