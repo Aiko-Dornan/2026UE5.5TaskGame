@@ -455,7 +455,7 @@ void AEnemyAIController::UpdateAI()
             bIsFirstDiscoverer = false;
             bHasAlertedAllies = false;
             bIsScanning = false;
-
+            FirstDetectLocation = LastKnownLocation;
             SearchCenter = LastKnownLocation;
             SearchTimer = 0.f;
             DetectionValueDecrease(EnemyChar);
@@ -475,18 +475,18 @@ void AEnemyAIController::UpdateAI()
             //    //MoveToLocation(LastKnownLocation);
             //}
             //else
-            //{
-            //    CurrentState = EEnemyState::Caution;
+            {
+                CurrentState = EEnemyState::Caution;
 
-            //    if (EnemyChar)
-            //        EnemyChar->SetMoveState(EEnemyMoveState::Caution);
+                if (EnemyChar)
+                    EnemyChar->SetMoveState(EEnemyMoveState::Caution);
 
-            //    UE_LOG(LogTemp, Warning, TEXT("%s:Chase->Cation"), *GetName());
-            //    
-            //    //StopMovement();
-            //   
-            //   
-            //}
+                UE_LOG(LogTemp, Warning, TEXT("%s:Chase->Cation"), *GetName());
+                break;
+                //StopMovement();
+               
+               
+            }
            
         }
         else
@@ -494,7 +494,7 @@ void AEnemyAIController::UpdateAI()
             if (EnemyChar)
                 EnemyChar->SetMoveState(EEnemyMoveState::Chase);
             MoveToActor(TargetActor, 10.f);
-            //UE_LOG(LogTemp, Warning, TEXT("%s:Chase Mode"), *GetName());
+            
         }
         break;
     }
@@ -973,12 +973,15 @@ void AEnemyAIController::EnemyScanAround(AEnemyCharacter* EnemyC)//周囲にプ�
     {
         if (!bIsScanning)//スキャンしてないなら
         {
+           
             MoveToLocation(FirstDetectLocation);
 
             float Distance = FVector::Dist(
                 GetPawn()->GetActorLocation(),
                 FirstDetectLocation
             );
+            
+           
 
             if (Distance < 50.f || Distance == 0.0f)
             {
@@ -990,11 +993,12 @@ void AEnemyAIController::EnemyScanAround(AEnemyCharacter* EnemyC)//周囲にプ�
                 ScanBaseYaw = GetPawn()->GetActorRotation().Yaw;
                 ScanCurrentYaw = ScanBaseYaw;
                 ScanDirection = 1;
-
+                UE_LOG(LogTemp, Warning, TEXT("%s:Scan Start!."), *GetName());
             }
         }
         else
         {
+            //UE_LOG(LogTemp, Warning, TEXT("%s:Now Scanning!."), *GetName());
             // スキャン処理
             ScanTimer += UpdateInterval;
 
@@ -1051,6 +1055,8 @@ void AEnemyAIController::EnemyScanAround(AEnemyCharacter* EnemyC)//周囲にプ�
                 bHasStoredFirstDetectLocation = false;
                 bIsScanning = false;
                 bIsScanEnd = true;
+
+                
             }
             else
             {
