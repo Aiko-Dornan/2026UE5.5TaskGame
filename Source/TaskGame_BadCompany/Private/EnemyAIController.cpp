@@ -400,13 +400,14 @@ void AEnemyAIController::UpdateAI()
                         MoveToLocation(RandomMoveLocation);
                     }*/
                     StopMovement();
-
-                    MoveToLocation(RandomMoveLocation, 10.f);
+                    
+                   
                     bIsArrivedSearchLocation = true;
                     UE_LOG(LogTemp, Warning, TEXT("%s,RML:%lf,%lf"), *GetName(), RandomMoveLocation.X, RandomMoveLocation.Y);
                     UE_LOG(LogTemp, Warning, TEXT("%s: Idoutyuu"), *GetName());
                 }
             }
+            
 
             EPathFollowingRequestResult::Type Result = MoveToLocation(RandomMoveLocation);
 
@@ -424,12 +425,23 @@ void AEnemyAIController::UpdateAI()
         }
         else
         {
-       
-            /*if (Distance<200.0f)
+            MoveToLocation(RandomMoveLocation, 10.f);
+
+            float Distance =  FVector::Dist(
+                GetPawn()->GetActorLocation(),
+                RandomMoveLocation
+            );
+
+            if (Distance<30.0f)
             {
-                bIsArrivedSearchLocation = false;
+               // bIsArrivedSearchLocation = false;
+                FirstDetectLocation = RandomMoveLocation;
+                bIsScanning = false;
+               // EnemyScanAround(EnemyChar);
+                CurrentState = EEnemyState::Caution;
                 UE_LOG(LogTemp, Warning, TEXT("%s: IdouKanryou"), *GetName());
-            }*/
+                break;
+            }
         }
 
         // 再発見したらゲージが増える
@@ -503,28 +515,28 @@ void AEnemyAIController::UpdateAI()
 
 }
 
-void AEnemyAIController::OnMoveCompleted(
-    FAIRequestID RequestID,
-    const FPathFollowingResult& Result)
-{
-    Super::OnMoveCompleted(RequestID, Result);
-
-    if (CurrentState == EEnemyState::Search&&bIsArrivedSearchLocation)
-    {
-        bIsArrivedSearchLocation = false;
-
-        bIsScanning = true;
-        ScanTimer = 0.f;
-
-        ScanBaseYaw = GetPawn()->GetActorRotation().Yaw;
-        ScanCurrentYaw = ScanBaseYaw;
-        ScanDirection = 1;
-
-        UE_LOG(LogTemp, Warning, TEXT("%s: Search Scan Start"), *GetName());
-
-        UE_LOG(LogTemp, Warning, TEXT("%s: IdouKanryou"), *GetName());
-    }
-}
+//void AEnemyAIController::OnMoveCompleted(
+//    FAIRequestID RequestID,
+//    const FPathFollowingResult& Result)
+//{
+//    Super::OnMoveCompleted(RequestID, Result);
+//
+//    if (CurrentState == EEnemyState::Search&&bIsArrivedSearchLocation)
+//    {
+//        bIsArrivedSearchLocation = false;
+//
+//        bIsScanning = true;
+//        ScanTimer = 0.f;
+//
+//        ScanBaseYaw = GetPawn()->GetActorRotation().Yaw;
+//        ScanCurrentYaw = ScanBaseYaw;
+//        ScanDirection = 1;
+//
+//        UE_LOG(LogTemp, Warning, TEXT("%s: Search Scan Start"), *GetName());
+//
+//        UE_LOG(LogTemp, Warning, TEXT("%s: IdouKanryou"), *GetName());
+//    }
+//}
 
 void AEnemyAIController::Tick(float DeltaTime)
 {
@@ -1041,6 +1053,8 @@ void AEnemyAIController::EnemyScanAround(AEnemyCharacter* EnemyC)//周囲にプ�
                 else
                 {
                     CurrentState = EEnemyState::Search;
+
+                    bIsArrivedSearchLocation = false;
 
                     if (EnemyC)
                         EnemyC->SetMoveState(EEnemyMoveState::Caution);

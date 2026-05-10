@@ -82,9 +82,9 @@ protected:
     void MoveToNextPatrolPoint();//次のポイントに目標を変える関数
     bool StanbyOrIdle();
     void SourceBisActive(FDetectionSource AllSource);//bIsActiveの判定をここにまとめる。
-    void OnMoveCompleted(
+   /* void OnMoveCompleted(
         FAIRequestID RequestID,
-        const FPathFollowingResult& Result);
+        const FPathFollowingResult& Result);*/
 
 
 private:
