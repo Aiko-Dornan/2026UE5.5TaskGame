@@ -360,7 +360,7 @@ void AEnemyAIController::UpdateAI()
     {
         
 
-        SearchTimer += UpdateInterval;
+        //SearchTimer += UpdateInterval;
         
         
 
@@ -386,7 +386,7 @@ void AEnemyAIController::UpdateAI()
                     SearchRadius,
                     RandomLoc))
                 {
-
+                    StopMovement();
                     
                     RandomMoveLocation = RandomLoc.Location;
                     /*float Dist = FVector::Dist(
@@ -399,19 +399,20 @@ void AEnemyAIController::UpdateAI()
                         RandomMoveLocation = RandomLoc.Location;
                         MoveToLocation(RandomMoveLocation);
                     }*/
-                    StopMovement();
+                    
                     
                    
                     bIsArrivedSearchLocation = true;
                     UE_LOG(LogTemp, Warning, TEXT("%s,RML:%lf,%lf"), *GetName(), RandomMoveLocation.X, RandomMoveLocation.Y);
                     UE_LOG(LogTemp, Warning, TEXT("%s: Idoutyuu"), *GetName());
+                    break;
                 }
             }
             
 
-            EPathFollowingRequestResult::Type Result = MoveToLocation(RandomMoveLocation);
+            //EPathFollowingRequestResult::Type Result = MoveToLocation(RandomMoveLocation);
 
-            UE_LOG(LogTemp, Warning, TEXT("MoveResult: %d"), (int32)Result);
+            //UE_LOG(LogTemp, Warning, TEXT("MoveResult: %d"), (int32)Result);
 
             // 探索時間終了ただし感知ゲージがまだ残っているなら
             if (SearchTimer >= SearchDuration&&DetectionValue>0.0f)
@@ -426,13 +427,13 @@ void AEnemyAIController::UpdateAI()
         else
         {
             MoveToLocation(RandomMoveLocation, 10.f);
-
+            
             float Distance =  FVector::Dist(
                 GetPawn()->GetActorLocation(),
                 RandomMoveLocation
             );
 
-            if (Distance<30.0f)
+            if (Distance<20.0f)
             {
                // bIsArrivedSearchLocation = false;
                 FirstDetectLocation = RandomMoveLocation;
@@ -448,6 +449,7 @@ void AEnemyAIController::UpdateAI()
         if (bCurrentlySeeingTarget)
         {
             UpdateDetectionSources();
+            //CurrentState = EEnemyState::Investigate;
            
         }
         else
