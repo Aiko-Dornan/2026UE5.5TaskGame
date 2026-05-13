@@ -109,7 +109,8 @@ void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
         EnhancedInput->BindAction(JumpAction, ETriggerEvent::Started, this, &ACharacter::Jump);
         EnhancedInput->BindAction(JumpAction, ETriggerEvent::Completed, this, &ACharacter::StopJumping);
         EnhancedInput->BindAction(InteractAction, ETriggerEvent::Started, this, &APlayerCharacter::Interact);
-
+        EnhancedInput->BindAction(SneakAction, ETriggerEvent::Started, this, &APlayerCharacter::SneakStart);
+        EnhancedInput->BindAction(SneakAction, ETriggerEvent::Completed, this, &APlayerCharacter::SneakEnd);
     }
 
    
@@ -119,10 +120,21 @@ void APlayerCharacter::Move(const FInputActionValue& Value)
 {
     FVector2D MovementVector = Value.Get<FVector2D>();
    
+    if (bIsCrouchingStealth)
+    {
+        MovementVector = Value.Get<FVector2D>()/3;
+    }
+    else
+    {
+        MovementVector = Value.Get<FVector2D>();
+    }
+
 
     AddMovementInput(GetActorForwardVector(), MovementVector.Y);
     AddMovementInput(GetActorRightVector(), MovementVector.X);
    
+    MakeFootstepNoise();
+
 }
 
 void APlayerCharacter::Look(const FInputActionValue& Value)
@@ -169,6 +181,18 @@ void APlayerCharacter::Interact()
             Item->OnPickedUp(this);//取得を実行
         }
     }
+}
+
+void APlayerCharacter::SneakStart()
+{
+    bIsCrouchingStealth = true;
+    UE_LOG(LogTemp, Warning, TEXT("Sneak ON!!."));
+}
+
+void APlayerCharacter::SneakEnd()
+{
+    bIsCrouchingStealth = false;
+    UE_LOG(LogTemp, Warning, TEXT("Sneak END."));
 }
 
 void APlayerCharacter::TraceForItem()
@@ -248,4 +272,29 @@ void APlayerCharacter::UpdateDetectionUI()
 
     float MaxValue = GetMaxEnemyDetection();
     DetectionWidget->UpdateDetection(MaxValue);
+}
+
+void APlayerCharacter::MakeFootstepNoise()
+{
+    float Loudness = FootstepLoudness;
+    
+    // しゃがみ時は小さく
+    if (bIsCrouchingStealth)
+    {
+        Loudness *= 0.0f;
+    }
+
+    // 移動速度で音量変化
+    float Speed = GetVelocity().Size();
+
+    Loudness *= FMath::Clamp(Speed / 600.f, 0.2f, 1.5f);
+
+    UAISense_Hearing::ReportNoiseEvent(
+        GetWorld(),
+        GetActorLocation(),
+        Loudness,
+        this,
+        FootstepRange,
+        FName("FootStep")
+    );
 }

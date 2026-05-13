@@ -72,7 +72,7 @@ void AEnemyAIController::SetupPerception()
    
 
     //聴覚
-    HearingConfig->HearingRange = 2000.f;
+    HearingConfig->HearingRange = HearRadius;
     HearingConfig->SetMaxAge(2.f);
 
     HearingConfig->DetectionByAffiliation.bDetectEnemies = true;
@@ -244,7 +244,7 @@ void AEnemyAIController::UpdateAI()
             }
             else
             {
-                DetectionValueDecrease(EnemyChar);
+                //DetectionValueDecrease(EnemyChar);
             }
 
             if (bIsAlertWaiting)
@@ -322,7 +322,7 @@ void AEnemyAIController::UpdateAI()
             }
 
             // ★ 到達したらCautionへ
-            if (Distance < 100.f)
+            if (Distance < 60.f)
             {
                 CurrentState = EEnemyState::Caution;
                 UE_LOG(LogTemp, Warning, TEXT("%s: Investigate -> Caution"), *GetName());
@@ -389,6 +389,7 @@ void AEnemyAIController::UpdateAI()
                     StopMovement();
                     
                     RandomMoveLocation = RandomLoc.Location;
+                    RandomMoveLocation.Z = GetPawn()->GetActorLocation().Z;
                     /*float Dist = FVector::Dist(
                         GetPawn()->GetActorLocation(),
                         RandomLoc.Location);
@@ -403,7 +404,8 @@ void AEnemyAIController::UpdateAI()
                     
                    
                     bIsArrivedSearchLocation = true;
-                    UE_LOG(LogTemp, Warning, TEXT("%s,RML:%lf,%lf"), *GetName(), RandomMoveLocation.X, RandomMoveLocation.Y);
+                    UE_LOG(LogTemp, Warning, TEXT("%s,RML:%lf,%lf,%lf"), *GetName(), RandomMoveLocation.X, RandomMoveLocation.Y, RandomMoveLocation.Z);
+                    UE_LOG(LogTemp, Warning, TEXT("%s,Now Position:%lf,%lf"), *GetName(), GetPawn()->GetActorLocation().X, GetPawn()->GetActorLocation().Y);
                     UE_LOG(LogTemp, Warning, TEXT("%s: Idoutyuu"), *GetName());
                     break;
                 }
@@ -426,14 +428,15 @@ void AEnemyAIController::UpdateAI()
         }
         else
         {
-            MoveToLocation(RandomMoveLocation, 10.f);
+            MoveToLocation(RandomMoveLocation, 5.0f);
             
             float Distance =  FVector::Dist(
                 GetPawn()->GetActorLocation(),
                 RandomMoveLocation
             );
-
-            if (Distance<20.0f)
+            UE_LOG(LogTemp, Warning, TEXT("%s,Distance:%lf"), *GetName(), Distance);
+           // UE_LOG(LogTemp, Warning, TEXT("%s: %d"), *GetName(),CurrentState);
+            if (Distance<49.0f)
             {
                // bIsArrivedSearchLocation = false;
                 FirstDetectLocation = RandomMoveLocation;
@@ -677,12 +680,72 @@ void AEnemyAIController::OnTargetPerceptionUpdated(AActor* Actor, FAIStimulus St
     {
         if (Stimulus.WasSuccessfullySensed())
         {
-            FVector SoundLocation = Stimulus.StimulusLocation;
+            // Chase中は無視
+            if (CurrentState == EEnemyState::Chase)
+            {
+                return;
+            }
 
-            // 音源へ移動
-            MoveToLocation(SoundLocation);
+            APlayerCharacter* Player = Cast<APlayerCharacter>(Actor);
 
-            CurrentState = EEnemyState::Caution;
+            bool bPlayerInRestricted = false;
+
+            if (Player)
+            {
+                bPlayerInRestricted = Player->bIsInRestrictedArea;
+                
+            }
+
+            HeardLocation = Stimulus.StimulusLocation;
+            LastKnownLocation = HeardLocation;
+
+            bHeardSound = true;
+
+            // 足音タグなど
+            if (bIsDistrust && Stimulus.Tag == "FootStep"|| bPlayerInRestricted && Stimulus.Tag == "FootStep")
+            {
+                if (!HeardOnce&&!Player->bIsCrouchingStealth || Stimulus.Tag == "GunShot")
+                {
+                    // Patrol解除
+                    bIsPatrolling = false;
+                    bIsAlertWaiting = true;
+                    AlertWaitTimer = 0.f;
+
+                    // 調査地点設定
+                    FirstDetectLocation = HeardLocation;
+                    bHasStoredFirstDetectLocation = true;
+
+                    StopMovement();
+
+                   
+                   
+
+                    // 即Investigate
+                    CurrentState = EEnemyState::StandBy;
+
+                    HeardOnce = true;
+
+                    UE_LOG(LogTemp, Warning,
+                        TEXT("%s Heard Sound:x:%lf,y:%lf"),
+                        *GetName(),FirstDetectLocation.X,FirstDetectLocation.Y);
+                }
+                
+
+               
+            }
+            //else if (Stimulus.Tag == "GunShot")
+            //{
+            //    // 即Investigate
+            //    CurrentState = EEnemyState::Investigate;
+
+            //    StopMovement();
+            //}
+
+            
+
+            
+
+            
         }
     }
 
@@ -900,17 +963,17 @@ void AEnemyAIController::DetectionValueDecrease(AEnemyCharacter* EnemyC)//感知
         DetectionValue - DetectionDecreaseAmount * UpdateInterval * 4
     );
 
-    if (DetectionValue <= 0.0f && bIsScanEnd)
-    {
-        CurrentState = EEnemyState::Idle;
+    //if (DetectionValue <= 0.0f && bIsScanEnd)
+    //{
+    //    /*CurrentState = EEnemyState::Idle;
 
-        if (EnemyC)
-            EnemyC->SetMoveState(EEnemyMoveState::Idle);
-        // リセット
-        bHasStoredFirstDetectLocation = false;
-        bIsArrivedSearchLocation = false;
-        //  bLockLastKnownLocation = false;
-    }
+    //    if (EnemyC)
+    //        EnemyC->SetMoveState(EEnemyMoveState::Idle);*/
+    //    // リセット
+    //    bHasStoredFirstDetectLocation = false;
+    //    bIsArrivedSearchLocation = false;
+    //    //  bLockLastKnownLocation = false;
+    //}
 
 }
 
@@ -1051,6 +1114,10 @@ void AEnemyAIController::EnemyScanAround(AEnemyCharacter* EnemyC)//周囲にプ�
 
                     if (EnemyC)
                         EnemyC->SetMoveState(EEnemyMoveState::Idle);
+
+                   
+                    bIsArrivedSearchLocation = true;
+
                 }
                 else
                 {
@@ -1071,7 +1138,7 @@ void AEnemyAIController::EnemyScanAround(AEnemyCharacter* EnemyC)//周囲にプ�
                 bHasStoredFirstDetectLocation = false;
                 bIsScanning = false;
                 bIsScanEnd = true;
-
+                HeardOnce = false;
                 
             }
             else

@@ -107,6 +107,9 @@ private:
     UPROPERTY(EditAnywhere, Category = "AI|Sight")
     float PeripheralVisionAngle = 60.f;
 
+    UPROPERTY(EditAnywhere, Category = "AI|Hear")
+    float HearRadius = 500.f;
+
     // ===== 発見ゲージ =====
 
    
@@ -222,6 +225,9 @@ public:
     bool bIsSensingTerms = false;
     AActor* SeenHeardObject=nullptr;
 
+    bool bHeardSound = false;//音を聞いたかどうか
+    FVector HeardLocation;//聞こえた場所
+    bool HeardOnce = false;//1度音を聞いたかどうか、聞いたならスキャン完了まで聴覚関数には移動しない
 
     UPROPERTY(EditAnywhere,BlueprintReadWrite, Category = "AI|Detection")
     float AlertRadius=2000.0f;      //第一発見者から他の敵に連鎖する範囲

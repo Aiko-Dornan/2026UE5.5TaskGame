@@ -12,6 +12,7 @@
 #include"DetectionWidget.h"
 #include "Perception/AIPerceptionStimuliSourceComponent.h"
 #include "Perception/AISense_Sight.h" 
+#include "Perception/AISense_Hearing.h"
 #include "PlayerCharacter.generated.h"
 
 class UInputMappingContext;
@@ -40,6 +41,9 @@ public:
     float GetMaxEnemyDetection() const;
     void UpdateDetectionUI();
 
+    UFUNCTION()
+    void MakeFootstepNoise();
+
 protected:
     virtual void BeginPlay() override;
     virtual void SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) override;
@@ -64,6 +68,9 @@ protected:
     UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Input")
     UInputAction* InteractAction;
 
+    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Input")
+    UInputAction* SneakAction;
+
     // AIに検知されるためのコンポーネント
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "AI")
     UAIPerceptionStimuliSourceComponent* StimuliSource;
@@ -72,7 +79,8 @@ protected:
     void Move(const FInputActionValue& Value);
     void Look(const FInputActionValue& Value);
     void Interact();
-
+    void SneakStart();
+    void SneakEnd();
    
 
 public:
@@ -82,7 +90,14 @@ public:
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Player")
     bool bIsInRestrictedArea = false;
 
-   
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Stealth")
+    float FootstepLoudness = 1.0f;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Stealth")
+    float FootstepRange = 1200.f;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Stealth")
+    bool bIsCrouchingStealth = false;
 
 private:
     FTimerHandle TraceTimerHandle;
