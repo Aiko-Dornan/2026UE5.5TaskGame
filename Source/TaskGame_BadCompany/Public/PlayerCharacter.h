@@ -21,6 +21,7 @@ class UCameraComponent;
 class UInteractWidget;
 class UDetectionWidget;
 class UCharacterMovementComponent;
+class UInventoryComponent;
 
 UCLASS()
 class TASKGAME_BADCOMPANY_API APlayerCharacter : public ACharacter
@@ -40,9 +41,11 @@ public:
     //敵の感知具合を受け取る関数
     float GetMaxEnemyDetection() const;
     void UpdateDetectionUI();
-
+    //歩いていたら周囲にUAISense_Hearing::ReportNoiseEventを発生させる
     UFUNCTION()
     void MakeFootstepNoise();
+    
+
 
 protected:
     virtual void BeginPlay() override;
@@ -98,6 +101,9 @@ public:
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Stealth")
     bool bIsCrouchingStealth = false;
+
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+    UInventoryComponent* Inventory;
 
 private:
     FTimerHandle TraceTimerHandle;

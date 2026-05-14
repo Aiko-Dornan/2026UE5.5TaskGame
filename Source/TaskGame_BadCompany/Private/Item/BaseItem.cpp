@@ -1,6 +1,7 @@
 ﻿#include "Item/BaseItem.h"
 #include "Components/StaticMeshComponent.h"
 #include "PlayerCharacter.h"
+#include "InventoryComponent.h"
 
 ABaseItem::ABaseItem()
 {
@@ -36,6 +37,12 @@ ABaseItem::ABaseItem()
 
 void ABaseItem::OnPickedUp(APlayerCharacter* Player)
 {
+
+    if (Player && Player->Inventory)
+    {
+        Player->Inventory->AddItem(ItemData);
+    }
+
     // 基本は消えるだけ
     Destroy();
 }

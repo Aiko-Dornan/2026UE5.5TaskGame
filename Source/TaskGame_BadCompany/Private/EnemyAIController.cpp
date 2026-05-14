@@ -216,9 +216,9 @@ void AEnemyAIController::UpdateAI()
             bIsPlayerInTabooArea = true;
         }
        
-        
+        bIsSuspicion = true;
 
-        if (bIsPlayerInTabooArea||bIsDistrust)
+        if (bIsPlayerInTabooArea||bIsDistrust||bIsSuspicion)
         {
             
 
@@ -247,31 +247,11 @@ void AEnemyAIController::UpdateAI()
                 //DetectionValueDecrease(EnemyChar);
             }
 
-            if (bIsAlertWaiting)
-            {
-
-                AlertWaitTimer += UpdateInterval;
-
-                if (AlertWaitTimer >= AlertWaitTime)
-                {
-                    bIsAlertWaiting = false;
-
-                    //視界にいなくても必ず調査へ
-                    CurrentState = EEnemyState::Investigate;
-                    bHasStoredFirstDetectLocation = false;
-                    bIsScanning = false;
-                    ScanTimer = 0.f;
-                    UE_LOG(LogTemp, Warning, TEXT("%s: StandBy -> Investigate"), *GetName());
-                }
-                else
-                {
-                    return; // 停止継続
-                }
-
-            }
+            
         }
         else
         {
+            
             //DetectionValueDecrease(EnemyChar);
             /*if (DetectionValue<=0.0f)
             {
@@ -284,7 +264,28 @@ void AEnemyAIController::UpdateAI()
         
        // UE_LOG(LogTemp, Warning, TEXT("%s: StandBy"), *GetName());
 
-       
+        if (bIsAlertWaiting)
+        {
+
+            AlertWaitTimer += UpdateInterval;
+
+            if (AlertWaitTimer >= AlertWaitTime)
+            {
+                bIsAlertWaiting = false;
+
+                //視界にいなくても必ず調査へ
+                CurrentState = EEnemyState::Investigate;
+                bHasStoredFirstDetectLocation = false;
+                bIsScanning = false;
+                ScanTimer = 0.f;
+                UE_LOG(LogTemp, Warning, TEXT("%s: StandBy -> Investigate"), *GetName());
+            }
+            else
+            {
+                return; // 停止継続
+            }
+
+        }
 
     break;
 
@@ -348,7 +349,7 @@ void AEnemyAIController::UpdateAI()
         else
         {
             DetectionValueDecrease(EnemyChar);
- 
+            //MoveToLocation(FirstDetectLocation);
   
         }
 
@@ -681,7 +682,7 @@ void AEnemyAIController::OnTargetPerceptionUpdated(AActor* Actor, FAIStimulus St
         if (Stimulus.WasSuccessfullySensed())
         {
             // Chase中は無視
-            if (CurrentState == EEnemyState::Chase)
+            if (CurrentState == EEnemyState::Chase||CurrentState==EEnemyState::StandBy)
             {
                 return;
             }
@@ -702,7 +703,7 @@ void AEnemyAIController::OnTargetPerceptionUpdated(AActor* Actor, FAIStimulus St
             bHeardSound = true;
 
             // 足音タグなど
-            if (bIsDistrust && Stimulus.Tag == "FootStep"|| bPlayerInRestricted && Stimulus.Tag == "FootStep")
+            if ((bIsSuspicion||bIsDistrust) && Stimulus.Tag == "FootStep"|| bPlayerInRestricted && Stimulus.Tag == "FootStep" || Stimulus.Tag == "GunShot")
             {
                 if (!HeardOnce&&!Player->bIsCrouchingStealth || Stimulus.Tag == "GunShot")
                 {
@@ -761,6 +762,7 @@ void AEnemyAIController::OnAlertedByAlly(AActor* PlayerActor)
     DetectionValue = DetectionThreshold;
     bIsFirstDiscoverer = false; // 第一発見者以外の連鎖防止
     bIsDistrust = true;
+    bIsSuspicion = true;
     LastKnownLocation=TargetActor->GetActorLocation();
     MoveToLocation(LastKnownLocation);
 
@@ -842,7 +844,7 @@ void AEnemyAIController::UpdateDetectionSources()//感知ゲージを増やす�
         Alpha
     );
 
-    if (bIsDistrust)//1度敵に追いかけられているなら
+    if (bIsDistrust||bIsSuspicion)//1度敵に追いかけられているなら
     {
         if (SightSource.bIsActive)//敵に見られてたら
         {
@@ -1115,7 +1117,7 @@ void AEnemyAIController::EnemyScanAround(AEnemyCharacter* EnemyC)//周囲にプ�
                     if (EnemyC)
                         EnemyC->SetMoveState(EEnemyMoveState::Idle);
 
-                   
+                    bIsSuspicion = false;
                     bIsArrivedSearchLocation = true;
 
                 }

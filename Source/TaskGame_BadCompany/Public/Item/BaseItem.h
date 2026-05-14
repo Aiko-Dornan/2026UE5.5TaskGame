@@ -2,6 +2,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
+#include "InventoryItemData.h"
 #include "BaseItem.generated.h"
 
 UCLASS()
@@ -19,7 +20,10 @@ protected:
     
 
 public:
-    UPROPERTY(EditDefaultsOnly, BlueprintReadWrite ,Category= "Item")
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Item")
+    FInventoryItemData ItemData;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite ,Category= "Item")
     FText ItemName = FText::FromString("Nameless");
     UPROPERTY(EditAnywhere, BlueprintReadWrite)
     FText InteractText = FText::FromString(":Eで拾う");

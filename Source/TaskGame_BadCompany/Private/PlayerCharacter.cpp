@@ -5,6 +5,7 @@
 #include "InputMappingContext.h"
 #include"EnemyAIController.h"
 #include "InputAction.h"
+#include "InventoryComponent.h"
 
 APlayerCharacter::APlayerCharacter()
 {
@@ -35,6 +36,9 @@ APlayerCharacter::APlayerCharacter()
     GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_GameTraceChannel1, ECR_Ignore);
 
     Tags.Add("Player");
+
+    Inventory = CreateDefaultSubobject<UInventoryComponent>(TEXT("Inventory"));
+
 }
 
 void APlayerCharacter::BeginPlay()
@@ -229,7 +233,7 @@ void APlayerCharacter::UpdateInteractUI(ABaseItem* NewItem)
 
         if (NewItem)
         {
-            FString Text = NewItem->ItemName.ToString() + NewItem->InteractText.ToString();
+            FString Text = NewItem->ItemData.ItemName.ToString() + NewItem->InteractText.ToString();
 
             InteractWidget->SetInteractText(Text);
             InteractWidget->SetVisibility(ESlateVisibility::Visible);
