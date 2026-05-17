@@ -279,9 +279,12 @@ void AEnemyAIController::UpdateAI()
                 bIsScanning = false;
                 ScanTimer = 0.f;
                 UE_LOG(LogTemp, Warning, TEXT("%s: StandBy -> Investigate"), *GetName());
+                AlertWaitTimer = 0.0f;
+                break;
             }
             else
             {
+                StopMovement();
                 return; // 停止継続
             }
 
@@ -1039,7 +1042,7 @@ void AEnemyAIController::EnemyScanAround(AEnemyCharacter* EnemyC)//周囲にプ�
                 //AlertWaitTimer = .0f;
                
                 
-                CurrentState = EEnemyState::StandBy;
+                CurrentState = EEnemyState::Investigate;
 
 
                 //break;

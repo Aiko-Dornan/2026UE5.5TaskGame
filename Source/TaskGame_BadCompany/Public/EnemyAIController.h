@@ -176,7 +176,7 @@ private:
     bool bHasStoredFirstDetectLocation = false;
 
     bool bIsDistrust = false;//長期的な判断用のフラグ。過去に条件を満たしていたかどうか。
-    bool bIsSuspicion = false;//短期的な判断フラグ。敵がアイドル形態に戻るまで維持する。
+    
 
     // ★ 初動停止用
     bool bIsAlertWaiting = false;
@@ -237,5 +237,6 @@ public:
     FDetectionSource SightSource;
     FDetectionSource RestrictedAreaSource;
 
-   
+    UPROPERTY(EditAnywhere, BlueprintReadOnly)
+    bool bIsSuspicion = false;//短期的な判断フラグ。敵がアイドル形態に戻るまで維持する。
 };
