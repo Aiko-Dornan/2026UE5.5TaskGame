@@ -10,6 +10,7 @@
 #include"Item/BaseItem.h"
 #include"InteractWidget.h"
 #include"DetectionWidget.h"
+#include"InventoryWidget.h"
 #include "Perception/AIPerceptionStimuliSourceComponent.h"
 #include "Perception/AISense_Sight.h" 
 #include "Perception/AISense_Hearing.h"
@@ -22,6 +23,7 @@ class UInteractWidget;
 class UDetectionWidget;
 class UCharacterMovementComponent;
 class UInventoryComponent;
+class UInventoryWidget;
 
 UCLASS()
 class TASKGAME_BADCOMPANY_API APlayerCharacter : public ACharacter
@@ -119,5 +121,10 @@ private:
     UPROPERTY()
     UDetectionWidget* DetectionWidget;
     FTimerHandle DetectionUITimer;
+
+    UPROPERTY(EditAnywhere, Category = "UI")
+    TSubclassOf<UInventoryWidget> InventoryWidgetClass;
+    UPROPERTY()
+    UInventoryWidget* InventoryWidget;
 
 };

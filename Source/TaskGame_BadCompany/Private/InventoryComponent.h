@@ -7,6 +7,7 @@
 #include "InventoryItemData.h"
 #include "InventoryComponent.generated.h"
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnInventoryUpdated);
 
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class UInventoryComponent : public UActorComponent
@@ -20,6 +21,11 @@ public:
 	TArray<FInventoryItemData> Items;
 
 	bool AddItem(const FInventoryItemData& NewItem);
+
+	// Widgetへ通知するイベント
+	UPROPERTY(BlueprintAssignable, Category = "Inventory")
+	FOnInventoryUpdated OnInventoryUpdated;
+
 protected:
 	// Called when the game starts
 	virtual void BeginPlay() override;

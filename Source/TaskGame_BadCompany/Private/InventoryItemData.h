@@ -29,4 +29,8 @@ public:
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite)
     int32 Count = 1;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite)
+    TObjectPtr<UTexture2D> ItemIcon;//アイテム画像
+
 };

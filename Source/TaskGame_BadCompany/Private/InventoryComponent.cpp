@@ -13,24 +13,24 @@ UInventoryComponent::UInventoryComponent()
 	// ...
 }
 
-bool UInventoryComponent::AddItem(const FInventoryItemData& NewItem)
-{
-    // 同じIDのアイテムを探す
-    for (FInventoryItemData& Item : Items)
-    {
-        if (Item.ItemID == NewItem.ItemID)
-        {
-            Item.ItemName = NewItem.ItemName;
-            Item.Count += NewItem.Count;
-            return true;
-        }
-    }
-
-    // 新規追加
-    Items.Add(NewItem);
-
-    return true;
-}
+//bool UInventoryComponent::AddItem(const FInventoryItemData& NewItem)
+//{
+//    // 同じIDのアイテムを探す
+//    for (FInventoryItemData& Item : Items)
+//    {
+//        if (Item.ItemID == NewItem.ItemID)
+//        {
+//            Item.ItemName = NewItem.ItemName;
+//            Item.Count += NewItem.Count;
+//            return true;
+//        }
+//    }
+//
+//    // 新規追加
+//    Items.Add(NewItem);
+//
+//    return true;
+//}
 
 // Called when the game starts
 void UInventoryComponent::BeginPlay()
@@ -41,6 +41,29 @@ void UInventoryComponent::BeginPlay()
 	
 }
 
+bool UInventoryComponent::AddItem(const FInventoryItemData& NewItem)
+{
+    for (FInventoryItemData& Item : Items)
+    {
+        if (Item.ItemID == NewItem.ItemID)
+        {
+            Item.ItemName = NewItem.ItemName;
+            Item.Count += NewItem.Count;
+
+            // 更新通知
+            OnInventoryUpdated.Broadcast();
+
+            return true;
+        }
+    }
+
+    Items.Add(NewItem);
+
+    // 更新通知
+    OnInventoryUpdated.Broadcast();
+
+    return true;
+}
 
 // Called every frame
 void UInventoryComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)

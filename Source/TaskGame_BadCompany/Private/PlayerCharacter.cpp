@@ -6,6 +6,7 @@
 #include"EnemyAIController.h"
 #include "InputAction.h"
 #include "InventoryComponent.h"
+#include"InventoryWidget.h"
 
 APlayerCharacter::APlayerCharacter()
 {
@@ -55,6 +56,21 @@ void APlayerCharacter::BeginPlay()
                 Subsystem->AddMappingContext(PlayerInputContext, 0);
                
             }
+        }
+    }
+
+    if (InventoryWidgetClass)
+    {
+        InventoryWidget = CreateWidget<UInventoryWidget>(
+            GetWorld(),
+            InventoryWidgetClass
+        );
+
+        if (InventoryWidget)
+        {
+            InventoryWidget->AddToViewport();
+
+            InventoryWidget->InitializeInventory(Inventory);
         }
     }
 
