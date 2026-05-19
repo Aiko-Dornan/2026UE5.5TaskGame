@@ -47,7 +47,7 @@ public:
     UFUNCTION()
     void MakeFootstepNoise();
     
-
+    void ResetUse();
 
 protected:
     virtual void BeginPlay() override;
@@ -76,6 +76,12 @@ protected:
     UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Input")
     UInputAction* SneakAction;
 
+    UPROPERTY(EditAnywhere, Category = "Input")
+    UInputAction* IA_InventoryScroll;
+
+    UPROPERTY(EditAnywhere, Category = "Input")
+    UInputAction* IA_UseItem;
+
     // AIに検知されるためのコンポーネント
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "AI")
     UAIPerceptionStimuliSourceComponent* StimuliSource;
@@ -86,7 +92,8 @@ protected:
     void Interact();
     void SneakStart();
     void SneakEnd();
-   
+    void OnInventoryScroll(const FInputActionValue& Value);
+    void OnUseItem();
 
 public:
     ABaseItem* CurrentItem;
@@ -127,4 +134,6 @@ private:
     UPROPERTY()
     UInventoryWidget* InventoryWidget;
 
+    bool bCanUseItem = true;
+    FTimerHandle ItemUseTimerHandle;
 };

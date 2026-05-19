@@ -23,12 +23,30 @@ public:
 
     void SetItemData(const FInventoryItemData& ItemData);
 
+    void ClearSlot();
+
+    void SetSelected(bool bSelected);
+
+    
+
 protected:
 
     virtual void NativeConstruct() override;
 
     UPROPERTY(meta = (BindWidget))
+    UImage* InventorySlot;
+
+    UPROPERTY(EditDefaultsOnly, Category = "UI")
+    UTexture2D* NormalTexture;
+
+    UPROPERTY(EditDefaultsOnly, Category = "UI")
+    UTexture2D* SelectedTexture;
+
+    UPROPERTY(meta = (BindWidget))
     UImage* ItemIconImage;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite)
+    UTexture2D* EmptyTexture;
 
     UPROPERTY(meta = (BindWidget))
     UTextBlock* ItemNameText;
@@ -36,6 +54,6 @@ protected:
     UPROPERTY(meta = (BindWidget))
     UTextBlock* CountText;
 	
-    
+   
 
 };

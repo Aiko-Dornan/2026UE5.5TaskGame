@@ -22,7 +22,9 @@ void UInventoryWidget::InitializeInventory(UInventoryComponent* Inventory)
 
 void UInventoryWidget::RefreshInventory()
 {
-    if (!InventoryRef) return;
+    //if (!InventoryRef) return;
+
+
 
     if (!ItemGrid)
     {
@@ -38,7 +40,10 @@ void UInventoryWidget::RefreshInventory()
 
     ItemGrid->ClearChildren();
 
-    for (int32 i = 0; i < InventoryRef->Items.Num(); i++)
+    const int32 MaxSlotCount = 5;
+    const int32 ColumnCount = 5;
+
+    for (int32 i = 0; i < MaxSlotCount; i++)
     {
         UItemSlotWidget* ItemSlot =
             CreateWidget<UItemSlotWidget>(
@@ -48,65 +53,67 @@ void UInventoryWidget::RefreshInventory()
 
         if (!ItemSlot)
         {
-            UE_LOG(LogTemp, Error, TEXT("Slot Create Failed"));
+            UE_LOG(LogTemp, Error, TEXT("NanteKotoDA!"));
             continue;
         }
 
-        ItemSlot->SetItemData(InventoryRef->Items[i]);
-        const int32 ColumnCount = 5;
+        if (InventoryRef->Items.IsValidIndex(i) &&
+            !InventoryRef->Items[i].bIsEmpty)
+        {
+            ItemSlot->SetItemData(InventoryRef->Items[i]);
+        }
+        else
+        {
+            ItemSlot->ClearSlot();
+        }
+
+        // アイテムが存在する場合のみデータ設定
+        if (InventoryRef->Items.IsValidIndex(i))
+        {
+            UE_LOG(LogTemp, Error, TEXT("ARUYAN!"));
+            ItemSlot->SetItemData(InventoryRef->Items[i]);
+        }
+
         int32 Row = i / ColumnCount;
         int32 Col = i % ColumnCount;
 
-       /* UUniformGridSlot* GridSlot =
+        UUniformGridSlot* GridSlot =
             ItemGrid->AddChildToUniformGrid(
                 ItemSlot,
                 Row,
                 Col
             );
 
-        if (GridSlot)
-        {
-            GridSlot->Padding=(FMargin(2.f));
-        }*/
+        ItemSlot->SetSelected(i == SelectedIndex);
 
-        ItemGrid->AddChildToUniformGrid(
-            ItemSlot,
-            i / 5,
-            i % 5
-        );
+       /* if (GridSlot)
+        {
+            GridSlot->SetPadding(FMargin(0.f));
+        }*/
     }
+
 }
 
-//void UInventoryWidget::RefreshInventory()
-//{
-//    if (!InventoryRef || !ItemGrid) return;
-//
-//    ItemGrid->ClearChildren();
-//
-//    const int32 ColumnCount = 5;
-//
-//    for (int32 i = 0; i < InventoryRef->Items.Num(); i++)
-//    {
-//        const FInventoryItemData& Item = InventoryRef->Items[i];
-//
-//        UItemSlotWidget* ItemSlot =
-//            CreateWidget<UItemSlotWidget>(
-//                GetOwningPlayer(),
-//                ItemSlotClass
-//            );
-//
-//        if (ItemSlot)
-//        {
-//            ItemSlot->SetItemData(Item);
-//
-//            int32 Row = i / ColumnCount;
-//            int32 Col = i % ColumnCount;
-//
-//            ItemGrid->AddChildToUniformGrid(
-//                ItemSlot,
-//                Row,
-//                Col
-//            );
-//        }
-//    }
-//}
+void UInventoryWidget::MoveSelection(int32 Direction)
+{
+    const int32 MaxSlot = 5;
+
+    SelectedIndex += Direction;
+
+    if (SelectedIndex < 0)
+        SelectedIndex = MaxSlot - 1;
+
+    if (SelectedIndex >= MaxSlot)
+        SelectedIndex = 0;
+
+    RefreshInventory();
+}
+
+void UInventoryWidget::UseSelectedItem()
+{
+    if (!InventoryRef) return;
+
+    InventoryRef->UseItem(SelectedIndex);
+
+    RefreshInventory();
+}

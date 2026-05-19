@@ -38,32 +38,119 @@ void UInventoryComponent::BeginPlay()
 	Super::BeginPlay();
 
 	// ...
-	
+    Items.SetNum(MaxSlotCount);
+
+    for (FInventoryItemData& Item : Items)
+    {
+        Item = FInventoryItemData();
+        Item.bIsEmpty = true;
+        Item.Count = 0;
+    }
+
 }
 
 bool UInventoryComponent::AddItem(const FInventoryItemData& NewItem)
 {
+    // =========================
+    // 1. 既存スタックへ追加
+    // =========================
+
     for (FInventoryItemData& Item : Items)
     {
-        if (Item.ItemID == NewItem.ItemID)
+        if (!Item.bIsEmpty &&
+            Item.ItemID == NewItem.ItemID)
         {
-            Item.ItemName = NewItem.ItemName;
-            Item.Count += NewItem.Count;
+            // 空きスタック数
+            int32 SpaceLeft =
+                Item.MaxStackCount - Item.Count;
 
-            // 更新通知
+            if (SpaceLeft > 0)
+            {
+                int32 AddCount =
+                    FMath::Min(SpaceLeft, NewItem.Count);
+
+                Item.Count += AddCount;
+
+                OnInventoryUpdated.Broadcast();
+
+                return true;
+            }
+        }
+    }
+
+    // =========================
+    // 2. 空スロット探索
+    // =========================
+
+    for (FInventoryItemData& Item : Items)
+    {
+        if (Item.bIsEmpty)
+        {
+            Item = NewItem;
+            Item.bIsEmpty = false;
+
             OnInventoryUpdated.Broadcast();
 
             return true;
         }
     }
 
-    Items.Add(NewItem);
+    // =========================
+    // 3. 満杯
+    // =========================
 
-    // 更新通知
+    return false;
+}
+
+bool UInventoryComponent::UseItem(int32 Index)//アイテム消費
+{
+    if (!Items.IsValidIndex(Index))
+        return false;
+
+    FInventoryItemData& Item = Items[Index];
+
+    if (Item.bIsEmpty)
+        return false;
+
+    // 1個消費
+    Item.Count--;
+
+    // 0なら空スロット化
+    if (Item.Count <= 0)
+    {
+        Item = FInventoryItemData(); // 初期化
+        Item.bIsEmpty = true;
+        Item.Count = 0;
+    }
+
     OnInventoryUpdated.Broadcast();
 
     return true;
 }
+
+//bool UInventoryComponent::AddItem(const FInventoryItemData& NewItem)
+//{
+//    for (FInventoryItemData& Item : Items)
+//    {
+//        if (Item.ItemID == NewItem.ItemID)
+//        {
+//            Item.ItemName = NewItem.ItemName;
+//            Item.Count += NewItem.Count;
+//
+//            // 更新通知
+//            OnInventoryUpdated.Broadcast();
+//
+//            return true;
+//        }
+//    }
+//
+//    Items.Add(NewItem);
+//
+//    // 更新通知
+//    OnInventoryUpdated.Broadcast();
+//
+//    return true;
+//}
 
 // Called every frame
 void UInventoryComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)

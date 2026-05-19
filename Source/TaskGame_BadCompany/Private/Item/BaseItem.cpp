@@ -40,11 +40,15 @@ void ABaseItem::OnPickedUp(APlayerCharacter* Player)
 
     if (Player && Player->Inventory)
     {
-        Player->Inventory->AddItem(ItemData);
-    }
+        bool bAdded =
+            Player->Inventory->AddItem(ItemData);
 
-    // 基本は消えるだけ
-    Destroy();
+        // 入った時だけ消す
+        if (bAdded)
+        {
+            Destroy();
+        }
+    }
 }
 
 void ABaseItem::SetHighlight(bool bEnable)

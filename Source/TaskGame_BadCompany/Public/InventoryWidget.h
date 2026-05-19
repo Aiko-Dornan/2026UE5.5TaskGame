@@ -29,7 +29,11 @@ public:
     UFUNCTION()
     void RefreshInventory();
 
+    UFUNCTION()
+    void MoveSelection(int32 Direction);
 
+    UFUNCTION()
+    void UseSelectedItem();
 
 private:
 
@@ -44,5 +48,5 @@ public:
     UPROPERTY(EditAnywhere, BlueprintReadWrite)
     TSubclassOf<UItemSlotWidget> ItemSlotClass;
 
-
+    int32 SelectedIndex = 0;
 };

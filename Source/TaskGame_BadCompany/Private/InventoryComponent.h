@@ -20,7 +20,12 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	TArray<FInventoryItemData> Items;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	int32 MaxSlotCount = 5;
+
 	bool AddItem(const FInventoryItemData& NewItem);
+
+	bool UseItem(int32 Index);//アイテム消費
 
 	// Widgetへ通知するイベント
 	UPROPERTY(BlueprintAssignable, Category = "Inventory")

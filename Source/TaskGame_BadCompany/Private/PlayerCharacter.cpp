@@ -131,6 +131,8 @@ void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
         EnhancedInput->BindAction(InteractAction, ETriggerEvent::Started, this, &APlayerCharacter::Interact);
         EnhancedInput->BindAction(SneakAction, ETriggerEvent::Started, this, &APlayerCharacter::SneakStart);
         EnhancedInput->BindAction(SneakAction, ETriggerEvent::Completed, this, &APlayerCharacter::SneakEnd);
+        EnhancedInput->BindAction(IA_InventoryScroll,ETriggerEvent::Triggered,this,&APlayerCharacter::OnInventoryScroll);
+        EnhancedInput->BindAction(IA_UseItem,ETriggerEvent::Started,this,&APlayerCharacter::OnUseItem);
     }
 
    
@@ -213,6 +215,41 @@ void APlayerCharacter::SneakEnd()
 {
     bIsCrouchingStealth = false;
     UE_LOG(LogTemp, Warning, TEXT("Sneak END."));
+}
+
+void APlayerCharacter::OnInventoryScroll(const FInputActionValue& Value)
+{
+    float Scroll = Value.Get<float>();
+
+    if (!InventoryWidget) return;
+
+    InventoryWidget->MoveSelection((int32)Scroll);
+}
+
+void APlayerCharacter::OnUseItem()
+{
+    if (!bCanUseItem) return;
+
+    bCanUseItem = false;
+
+    if (InventoryWidget)
+    {
+        InventoryWidget->UseSelectedItem();
+    }
+
+    // すぐ戻す
+    GetWorldTimerManager().SetTimer(
+        ItemUseTimerHandle,
+        this,
+        &APlayerCharacter::ResetUse,
+        0.1f,
+        false
+    );
+}
+
+void APlayerCharacter::ResetUse()
+{
+    bCanUseItem = true;
 }
 
 void APlayerCharacter::TraceForItem()

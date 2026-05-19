@@ -31,6 +31,17 @@ public:
     int32 Count = 1;
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite)
+    int32 MaxStackCount = 99;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite)
+    float ItemReUseCoolDown = 10.0f;//アイテムのクールダウンに使う予定
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite)
     TObjectPtr<UTexture2D> ItemIcon;//アイテム画像
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite)
+    bool bIsEmpty = true;
+
+
 
 };
