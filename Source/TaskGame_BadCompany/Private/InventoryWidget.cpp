@@ -1,4 +1,4 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+ï»¿// Fill out your copyright notice in the Description page of Project Settings.
 
 
 #include "InventoryWidget.h"
@@ -10,13 +10,13 @@ void UInventoryWidget::InitializeInventory(UInventoryComponent* Inventory)
 
     InventoryRef = Inventory;
 
-    // InventoryXVƒCƒxƒ“ƒg‚ðw“Ç
+    // Inventoryæ›´æ–°ã‚¤ãƒ™ãƒ³ãƒˆã‚’è³¼èª­
     InventoryRef->OnInventoryUpdated.AddDynamic(
         this,
         &UInventoryWidget::RefreshInventory
     );
 
-    // ‰‰ñXV
+    // åˆå›žæ›´æ–°
     RefreshInventory();
 }
 
@@ -67,7 +67,7 @@ void UInventoryWidget::RefreshInventory()
             ItemSlot->ClearSlot();
         }
 
-        // ƒAƒCƒeƒ€‚ª‘¶Ý‚·‚éê‡‚Ì‚Ýƒf[ƒ^Ý’è
+        // ã‚¢ã‚¤ãƒ†ãƒ ãŒå­˜åœ¨ã™ã‚‹å ´åˆã®ã¿ãƒ‡ãƒ¼ã‚¿è¨­å®š
         if (InventoryRef->Items.IsValidIndex(i))
         {
             UE_LOG(LogTemp, Error, TEXT("ARUYAN!"));
@@ -113,7 +113,22 @@ void UInventoryWidget::UseSelectedItem()
 {
     if (!InventoryRef) return;
 
-    InventoryRef->UseItem(SelectedIndex);
+    APlayerController* PC = GetOwningPlayer();
+
+    if (PC)
+    {
+        APlayerCharacter* Player =
+            Cast<APlayerCharacter>(PC->GetPawn());
+
+        if (Player)
+        {
+            InventoryRef->UseItem(SelectedIndex, Player);
+        }
+    }
 
     RefreshInventory();
+
+    /*InventoryRef->UseItem(SelectedIndex);
+
+    */
 }

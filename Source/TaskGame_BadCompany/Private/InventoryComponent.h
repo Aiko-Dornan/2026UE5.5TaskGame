@@ -1,13 +1,16 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+ï»¿// Fill out your copyright notice in the Description page of Project Settings.
 
 #pragma once
 
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
 #include "InventoryItemData.h"
+#include"PlayerCharacter.h"
 #include "InventoryComponent.generated.h"
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnInventoryUpdated);
+
+//class APlayerCharacter;
 
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class UInventoryComponent : public UActorComponent
@@ -25,9 +28,12 @@ public:
 
 	bool AddItem(const FInventoryItemData& NewItem);
 
-	bool UseItem(int32 Index);//ƒAƒCƒeƒ€Á”ï
+	//bool UseItem(int32 Index);//ã‚¢ã‚¤ãƒ†ãƒ æ¶ˆè²»
 
-	// Widget‚Ö’Ê’m‚·‚éƒCƒxƒ“ƒg
+	UFUNCTION()
+	bool UseItem(int32 Index, APlayerCharacter* Player);
+
+	// Widgetã¸é€šçŸ¥ã™ã‚‹ã‚¤ãƒ™ãƒ³ãƒˆ
 	UPROPERTY(BlueprintAssignable, Category = "Inventory")
 	FOnInventoryUpdated OnInventoryUpdated;
 

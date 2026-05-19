@@ -1,4 +1,4 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+ï»¿// Fill out your copyright notice in the Description page of Project Settings.
 
 #pragma once
 
@@ -9,8 +9,8 @@
 /**
  * 
  */
-
-enum class IDThrowItemType : uint8
+UENUM(BlueprintType)
+enum class EThrowItemType : uint8
 {
     MINE,
     SOUND,
@@ -23,16 +23,23 @@ class AThrowItem : public ABaseItem
 {
 	GENERATED_BODY()
 	
+public:
     UFUNCTION()
-    void FireMine();//’n—‹ày—ô
-    void SearchMine();//’n—‹‚ÌüˆÍ‚É“G‚ª‚¢‚È‚¢‚©’T’m
+    void FireMine();//åœ°é›·ç‚¸è£‚
+    void SearchMine();//åœ°é›·ã®å‘¨å›²ã«æ•µãŒã„ãªã„ã‹æ¢çŸ¥
 
-    void FireSound();//‰¹‚Åü•Ó‚Ì“G‚ğŒÄ‚ÑŠñ‚¹‚éB
+    void FireSound();//éŸ³ã§å‘¨è¾ºã®æ•µã‚’å‘¼ã³å¯„ã›ã‚‹ã€‚
 
-    void FireSmoke();//‰Œ‚Å‹ŠE–WŠQ‚Æ‚»‚ê‚Ü‚Å‚Ì‘Ò‹@
+    void FireSmoke();//ç…™ã§è¦–ç•Œå¦¨å®³ã¨ãã‚Œã¾ã§ã®å¾…æ©Ÿ
 
     void CreateFireWall();
 
-    void WaitFireTime();//ŒÀ®‚ÌƒAƒCƒeƒ€‚ª‹N“®‚·‚é‚Ü‚Å‚Ì‘Ò‚¿ŠÔ
+    void WaitFireTime();//æ™‚é™å¼ã®ã‚¢ã‚¤ãƒ†ãƒ ãŒèµ·å‹•ã™ã‚‹ã¾ã§ã®å¾…ã¡æ™‚é–“
+
+    //virtual void UseItem(APlayerCharacter* Player) override;
+
+public:
+   /* UPROPERTY(EditAnywhere, BlueprintReadWrite)
+    EThrowItemType ThrowType;*/
 
 };

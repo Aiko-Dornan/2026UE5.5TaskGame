@@ -23,10 +23,14 @@ public:
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Item")
     FInventoryItemData ItemData;
 
+    
+
     UPROPERTY(EditAnywhere, BlueprintReadWrite ,Category= "Item")
     FText ItemName = FText::FromString("Nameless");
     UPROPERTY(EditAnywhere, BlueprintReadWrite)
     FText InteractText = FText::FromString(":Eで拾う");
     // 拾われたときの処理（派生でオーバーライド可能）
     virtual void OnPickedUp(class APlayerCharacter* Player);
+
+    //virtual void UseItem(APlayerCharacter* Player);
 };

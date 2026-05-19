@@ -3,13 +3,24 @@
 #include "CoreMinimal.h"
 #include "InventoryItemData.generated.h"
 
-UENUM()
-enum class IDItemType : uint8
+//UENUM()
+//enum class IDItemType : uint8
+//{
+//    DEBUG,
+//    TRAPPUT,
+//    TRAPTHROW,
+//    AID,
+//};
+
+class ABaseItem;
+
+UENUM(BlueprintType)
+enum class EItemType : uint8
 {
-    DEBUG,
-    TRAPPUT,
-    TRAPTHROW,
-    AID,
+    DEBUG      UMETA(DisplayName = "Debug"),
+    TRAPPUT    UMETA(DisplayName = "TrapPut"),
+    TRAPTHROW  UMETA(DisplayName = "TrapThrow"),
+    AID        UMETA(DisplayName = "Aid"),
 };
 
 USTRUCT(BlueprintType)
@@ -18,8 +29,11 @@ struct FInventoryItemData
     GENERATED_BODY()
 
 public:
+    /*UPROPERTY(EditAnywhere, BlueprintReadWrite)
+    IDItemType ItemType;*/
+
     UPROPERTY(EditAnywhere, BlueprintReadWrite)
-    IDItemType ItemType;
+    EItemType ItemType;
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite)
     FName ItemID;
@@ -42,6 +56,7 @@ public:
     UPROPERTY(EditAnywhere, BlueprintReadWrite)
     bool bIsEmpty = true;
 
-
+    UPROPERTY(EditAnywhere, BlueprintReadWrite)
+    TSubclassOf<ABaseItem> ItemClass;
 
 };

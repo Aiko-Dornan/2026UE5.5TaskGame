@@ -1,4 +1,4 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+ï»¿// Fill out your copyright notice in the Description page of Project Settings.
 
 
 #include "InventoryComponent.h"
@@ -15,7 +15,7 @@ UInventoryComponent::UInventoryComponent()
 
 //bool UInventoryComponent::AddItem(const FInventoryItemData& NewItem)
 //{
-//    // “¯‚¶ID‚ÌƒAƒCƒeƒ€‚ğ’T‚·
+//    // åŒã˜IDã®ã‚¢ã‚¤ãƒ†ãƒ ã‚’æ¢ã™
 //    for (FInventoryItemData& Item : Items)
 //    {
 //        if (Item.ItemID == NewItem.ItemID)
@@ -26,7 +26,7 @@ UInventoryComponent::UInventoryComponent()
 //        }
 //    }
 //
-//    // V‹K’Ç‰Á
+//    // æ–°è¦è¿½åŠ 
 //    Items.Add(NewItem);
 //
 //    return true;
@@ -52,7 +52,7 @@ void UInventoryComponent::BeginPlay()
 bool UInventoryComponent::AddItem(const FInventoryItemData& NewItem)
 {
     // =========================
-    // 1. Šù‘¶ƒXƒ^ƒbƒN‚Ö’Ç‰Á
+    // 1. æ—¢å­˜ã‚¹ã‚¿ãƒƒã‚¯ã¸è¿½åŠ 
     // =========================
 
     for (FInventoryItemData& Item : Items)
@@ -60,7 +60,7 @@ bool UInventoryComponent::AddItem(const FInventoryItemData& NewItem)
         if (!Item.bIsEmpty &&
             Item.ItemID == NewItem.ItemID)
         {
-            // ‹ó‚«ƒXƒ^ƒbƒN”
+            // ç©ºãã‚¹ã‚¿ãƒƒã‚¯æ•°
             int32 SpaceLeft =
                 Item.MaxStackCount - Item.Count;
 
@@ -79,7 +79,7 @@ bool UInventoryComponent::AddItem(const FInventoryItemData& NewItem)
     }
 
     // =========================
-    // 2. ‹óƒXƒƒbƒg’Tõ
+    // 2. ç©ºã‚¹ãƒ­ãƒƒãƒˆæ¢ç´¢
     // =========================
 
     for (FInventoryItemData& Item : Items)
@@ -96,13 +96,54 @@ bool UInventoryComponent::AddItem(const FInventoryItemData& NewItem)
     }
 
     // =========================
-    // 3. –”t
+    // 3. æº€æ¯
     // =========================
 
     return false;
 }
 
-bool UInventoryComponent::UseItem(int32 Index)//ƒAƒCƒeƒ€Á”ï
+//bool UInventoryComponent::UseItem(int32 Index)//ã‚¢ã‚¤ãƒ†ãƒ æ¶ˆè²»
+//{
+//    if (!Items.IsValidIndex(Index))
+//        return false;
+//
+//    FInventoryItemData& Item = Items[Index];
+//
+//    if (Item.bIsEmpty)
+//        return false;
+//
+//    switch (Item.ItemType)
+//    {
+//    case IDItemType::TRAPPUT:
+//        break;
+//
+//    case IDItemType::TRAPTHROW:
+//        break;
+//
+//    case IDItemType::AID:
+//        break;
+//    }
+//
+//    // 1å€‹æ¶ˆè²»
+//    Item.Count--;
+//
+//    // 0ãªã‚‰ç©ºã‚¹ãƒ­ãƒƒãƒˆåŒ–
+//    if (Item.Count <= 0)
+//    {
+//        Item = FInventoryItemData(); // åˆæœŸåŒ–
+//        Item.bIsEmpty = true;
+//        Item.Count = 0;
+//    }
+//
+//    OnInventoryUpdated.Broadcast();
+//
+//    return true;
+//}
+
+bool UInventoryComponent::UseItem(
+    int32 Index,
+    APlayerCharacter* Player
+)
 {
     if (!Items.IsValidIndex(Index))
         return false;
@@ -112,15 +153,72 @@ bool UInventoryComponent::UseItem(int32 Index)//ƒAƒCƒeƒ€Á”ï
     if (Item.bIsEmpty)
         return false;
 
-    // 1ŒÂÁ”ï
+    
+    
+    switch (Item.ItemType)
+    {
+    case EItemType::DEBUG:
+    {
+        UE_LOG(LogTemp, Warning, TEXT("DEBUG ITEM"));
+        break;
+    }
+
+    case EItemType::TRAPPUT:
+    {
+        FVector SpawnLocation =
+            Player->GetActorLocation()
+            + Player->GetActorForwardVector() * 200.f;
+
+        UE_LOG(LogTemp, Warning, TEXT("Trap Put"));
+
+        // åœ°é¢è¨­ç½®ãƒˆãƒ©ãƒƒãƒ—ç”Ÿæˆ
+        break;
+    }
+
+    case EItemType::TRAPTHROW:
+    {
+        FVector SpawnLocation =
+            Player->GetActorLocation()
+            + Player->GetActorForwardVector() * 100.f;
+
+        FRotator SpawnRotation =
+            Player->GetControlRotation();
+
+        UE_LOG(LogTemp, Warning, TEXT("Throw Trap"));
+
+        // æŠ•æ“²ã‚¢ã‚¤ãƒ†ãƒ ç”Ÿæˆ
+
+        ABaseItem* SpawnedItem =
+            GetWorld()->SpawnActor<ABaseItem>(
+                Item.ItemClass,
+                SpawnLocation,
+                SpawnRotation
+            );
+
+        /*if (SpawnedItem)
+        {
+            SpawnedItem->UseItem(Player);
+        }*/
+
+        break;
+    }
+
+    case EItemType::AID:
+    {
+        UE_LOG(LogTemp, Warning, TEXT("Heal"));
+
+        // å›å¾©å‡¦ç†
+        break;
+    }
+    }
+
+    // ä½¿ç”¨å¾Œæ¶ˆè²»
     Item.Count--;
 
-    // 0‚È‚ç‹óƒXƒƒbƒg‰»
     if (Item.Count <= 0)
     {
-        Item = FInventoryItemData(); // ‰Šú‰»
+        Item = FInventoryItemData();
         Item.bIsEmpty = true;
-        Item.Count = 0;
     }
 
     OnInventoryUpdated.Broadcast();
@@ -137,7 +235,7 @@ bool UInventoryComponent::UseItem(int32 Index)//ƒAƒCƒeƒ€Á”ï
 //            Item.ItemName = NewItem.ItemName;
 //            Item.Count += NewItem.Count;
 //
-//            // XV’Ê’m
+//            // æ›´æ–°é€šçŸ¥
 //            OnInventoryUpdated.Broadcast();
 //
 //            return true;
@@ -146,7 +244,7 @@ bool UInventoryComponent::UseItem(int32 Index)//ƒAƒCƒeƒ€Á”ï
 //
 //    Items.Add(NewItem);
 //
-//    // XV’Ê’m
+//    // æ›´æ–°é€šçŸ¥
 //    OnInventoryUpdated.Broadcast();
 //
 //    return true;
