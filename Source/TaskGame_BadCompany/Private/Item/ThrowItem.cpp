@@ -12,8 +12,25 @@ AThrowItem::AThrowItem()
     //RootComponent = Mesh;
 
     Mesh->SetMobility(EComponentMobility::Movable);
-    Mesh->SetSimulatePhysics(false);
+    Mesh->SetSimulatePhysics(true);
+    Mesh->SetNotifyRigidBodyCollision(true);
 
+    Mesh->SetCollisionEnabled(
+        ECollisionEnabled::QueryAndPhysics
+    );
+
+    Mesh->SetCollisionObjectType(
+        ECC_GameTraceChannel1
+    );
+
+    Mesh->SetCollisionResponseToAllChannels(
+        ECR_Block
+    );
+
+    Mesh->SetCollisionResponseToChannel(
+        ECC_Pawn,
+        ECR_Ignore
+    );
 
     ProjectileMovement =
         CreateDefaultSubobject<UProjectileMovementComponent>(
@@ -57,15 +74,15 @@ AThrowItem::AThrowItem()
     //壁とか床とかに当たった時の反発度
     ProjectileMovement->Bounciness = ItemBouncePower;
 
-    // 投擲フラグが立つまでは停止
-    //ProjectileMovement->Deactivate();
-    //ProjectileMovement->SetUpdatedComponent(nullptr);
-
+    //ProjectileMovement->OnProjectileStop.AddDynamic(this, &AThrowItem::OnThrowItemStop);//地面とかに当たった時の関数
     
-
+    Mesh->OnComponentHit.AddDynamic(
+        this,
+        &AThrowItem::OnMeshHit
+    );
   
     
-  
+    UE_LOG(LogTemp, Warning, TEXT("Bind Hit Event"));
 
     UE_LOG(LogTemp, Warning, TEXT("Sim: %d"), ProjectileMovement->IsActive());
     
@@ -81,6 +98,8 @@ void AThrowItem::BeginPlay()
     Super::BeginPlay();
 
     ProjectileMovement->SetUpdatedComponent(Mesh);
+
+    Mesh->SetNotifyRigidBodyCollision(true);
 }
 
 //void AThrowItem::Tick(float DeltaTime)
@@ -122,17 +141,88 @@ void AThrowItem::Throw(
 
     //ProjectileMovement->InitialSpeed = ThrowPower;
 
-    UE_LOG(LogTemp, Warning,
-        TEXT("ThrowPower IN ITEM: %f"),
-        ThrowPower);
+    //UE_LOG(LogTemp, Warning,
+    //    TEXT("ThrowPower IN ITEM: %f"),
+    //    ThrowPower);
 
-    UE_LOG(LogTemp, Warning,
-        TEXT("InitialSpeedPower IN ITEM: %f"),
-        ProjectileMovement->InitialSpeed);
-    ThrowPower2 = ThrowPower;
+    //UE_LOG(LogTemp, Warning,
+    //    TEXT("InitialSpeedPower IN ITEM: %f"),
+    //    ProjectileMovement->InitialSpeed);
+    //ThrowPower2 = ThrowPower;
 
-    UE_LOG(LogTemp, Warning, TEXT("AFTER Velocity: %s"),
-        *ProjectileMovement->Velocity.ToString());
+    //UE_LOG(LogTemp, Warning, TEXT("AFTER Velocity: %s"),
+    //    *ProjectileMovement->Velocity.ToString());
+
+}
+
+void AThrowItem::OnThrowItemStop(
+    const FHitResult& ImpactResult
+)
+{
+    UE_LOG(LogTemp, Warning,
+        TEXT("Throw Item Stop! Hit: %s"),
+        *GetNameSafe(ImpactResult.GetActor())
+    );
+
+    switch (ThrowType)
+    {
+    case EThrowItemType::MINE:
+        FireMine();
+        break;
+
+    case EThrowItemType::SOUND:
+        FireSound();
+        break;
+
+    case EThrowItemType::SMOKE:
+        FireSmoke();
+        break;
+
+    case EThrowItemType::FIREWALL:
+        CreateFireWall();
+        break;
+    }
+
+    // 例:
+    // 投擲終了フラグ
+    bIsThrown = false;
+}
+
+void AThrowItem::OnMeshHit(
+    UPrimitiveComponent* HitComponent,
+    AActor* OtherActor,
+    UPrimitiveComponent* OtherComp,
+    FVector NormalImpulse,
+    const FHitResult& Hit
+)
+{
+    UE_LOG(LogTemp, Warning,
+        TEXT("Hit : %s"),
+        *GetNameSafe(OtherActor)
+    );
+
+    switch (ThrowType)
+    {
+    case EThrowItemType::MINE:
+        FireMine();
+        break;
+
+    case EThrowItemType::SOUND:
+        FireSound();
+        break;
+
+    case EThrowItemType::SMOKE:
+        FireSmoke();
+        break;
+
+    case EThrowItemType::FIREWALL:
+        CreateFireWall();
+        break;
+    }
+
+    // 例:
+    // 投擲終了フラグ
+    bIsThrown = false;
 
 }
 
@@ -152,7 +242,7 @@ void AThrowItem::FireMine()
 
 void AThrowItem::FireSound()
 {
-
+    UE_LOG(LogTemp, Warning, TEXT("Sound Fire"));
 
 
 }

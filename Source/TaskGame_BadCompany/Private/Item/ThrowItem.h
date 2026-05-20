@@ -30,6 +30,17 @@ public:
 
     void Throw(const FVector& Direction, float ThrowPower);
 
+    UFUNCTION()
+    void OnThrowItemStop(const FHitResult& ImpactResult);
+
+    UFUNCTION()
+    void OnMeshHit(
+        UPrimitiveComponent* HitComponent,
+        AActor* OtherActor,
+        UPrimitiveComponent* OtherComp,
+        FVector NormalImpulse,
+        const FHitResult& Hit
+    );
 
     UFUNCTION()
     void FireMine();//地雷炸裂
@@ -45,6 +56,8 @@ public:
 
     void SetThrowPower(float NewPower);
 
+
+
     //virtual void UseItem(APlayerCharacter* Player) override;
 protected:
     virtual void BeginPlay() override;
@@ -52,8 +65,8 @@ protected:
 
 
 public:
-   /* UPROPERTY(EditAnywhere, BlueprintReadWrite)
-    EThrowItemType ThrowType;*/
+    UPROPERTY(EditAnywhere, BlueprintReadWrite)
+    EThrowItemType ThrowType;
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ThrowItem")
     float ItemGravityScale = 1.0f;

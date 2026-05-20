@@ -153,7 +153,7 @@ void APlayerCharacter::Tick(float DeltaTime)
         CurrentThrowPower =
             FMath::Lerp(
                 800.f,
-                3500.f,
+                1500.f,
                 Rate
             );
 
