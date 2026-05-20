@@ -53,7 +53,7 @@ void UInventoryWidget::RefreshInventory()
 
         if (!ItemSlot)
         {
-            UE_LOG(LogTemp, Error, TEXT("NanteKotoDA!"));
+           // UE_LOG(LogTemp, Error, TEXT("NanteKotoDA!"));
             continue;
         }
 
@@ -70,7 +70,7 @@ void UInventoryWidget::RefreshInventory()
         // アイテムが存在する場合のみデータ設定
         if (InventoryRef->Items.IsValidIndex(i))
         {
-            UE_LOG(LogTemp, Error, TEXT("ARUYAN!"));
+           // UE_LOG(LogTemp, Error, TEXT("ARUYAN!"));
             ItemSlot->SetItemData(InventoryRef->Items[i]);
         }
 
@@ -123,7 +123,16 @@ void UInventoryWidget::UseSelectedItem()
         if (Player)
         {
             InventoryRef->UseItem(SelectedIndex, Player);
+            UE_LOG(LogTemp, Warning, TEXT("Use Item Widget"));
         }
+        else
+        {
+            UE_LOG(LogTemp, Warning, TEXT("Not PlayerCharacter"));
+        }
+    }
+    else
+    {
+        UE_LOG(LogTemp, Warning, TEXT("Not PlayerController"));
     }
 
     RefreshInventory();
@@ -131,4 +140,23 @@ void UInventoryWidget::UseSelectedItem()
     /*InventoryRef->UseItem(SelectedIndex);
 
     */
+}
+
+EItemType UInventoryWidget::GetSelectedItemType() const
+{
+    if (!InventoryRef)
+    {
+        return EItemType::DEBUG;
+    }
+
+    if (!InventoryRef->Items.IsValidIndex(SelectedIndex))
+    {
+        return EItemType::DEBUG;
+    }
+
+    return InventoryRef
+        ->Items[SelectedIndex]
+        .ItemType;
+
+
 }

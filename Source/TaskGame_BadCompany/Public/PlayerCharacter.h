@@ -8,6 +8,7 @@
 #include "Components/CapsuleComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include"Item/BaseItem.h"
+#include"Item/ThrowItem.h"
 #include"InteractWidget.h"
 #include"DetectionWidget.h"
 #include"InventoryWidget.h"
@@ -49,9 +50,17 @@ public:
     
     void ResetUse();
 
+   // void StartThrowCharge();
+    //void ReleaseThrow();
+   // void ThrowCurrentItem(float ThrowPower);
+
+    void StartUseItem();
+    void ReleaseUseItem();
+
 protected:
     virtual void BeginPlay() override;
     virtual void SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) override;
+    virtual void Tick(float DeltaTime) override;
 
     // ===== カメラ =====
     UPROPERTY(VisibleAnywhere)
@@ -86,6 +95,10 @@ protected:
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "AI")
     UAIPerceptionStimuliSourceComponent* StimuliSource;
 
+
+    
+
+
     // ===== 入力関数 =====
     void Move(const FInputActionValue& Value);
     void Look(const FInputActionValue& Value);
@@ -113,6 +126,13 @@ public:
 
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
     UInventoryComponent* Inventory;
+
+
+    bool bChargingThrow = false;
+
+    float ThrowChargeTime = 0.f;
+
+    float CurrentThrowPower = 1500.f;
 
 private:
     FTimerHandle TraceTimerHandle;

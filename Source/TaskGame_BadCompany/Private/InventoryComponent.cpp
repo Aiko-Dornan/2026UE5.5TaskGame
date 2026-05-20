@@ -2,6 +2,8 @@
 
 
 #include "InventoryComponent.h"
+#include "Item/ThrowItem.h"
+#include "Kismet/GameplayStatics.h"
 
 // Sets default values for this component's properties
 UInventoryComponent::UInventoryComponent()
@@ -177,6 +179,10 @@ bool UInventoryComponent::UseItem(
 
     case EItemType::TRAPTHROW:
     {
+        UE_LOG(LogTemp, Warning,
+            TEXT("ThrowPower BEFORE Spawn: %f"),
+            Player->CurrentThrowPower);
+
         FVector SpawnLocation =
             Player->GetActorLocation()
             + Player->GetActorForwardVector() * 100.f;
@@ -186,15 +192,65 @@ bool UInventoryComponent::UseItem(
 
         UE_LOG(LogTemp, Warning, TEXT("Throw Trap"));
 
+        const FTransform SpawnTransform = Player->GetActorTransform();
+
+
+        SpawnTransform.Rotator() = SpawnRotation;
+        SpawnTransform.TransformPosition(SpawnLocation);
         // 投擲アイテム生成
 
-        ABaseItem* SpawnedItem =
-            GetWorld()->SpawnActor<ABaseItem>(
+        /*AThrowItem* SpawnedItem =
+            GetWorld()->SpawnActor<AThrowItem>(
                 Item.ItemClass,
                 SpawnLocation,
                 SpawnRotation
+            );*/
+
+        AThrowItem* SpawnedItem =
+            GetWorld()->SpawnActorDeferred<AThrowItem>(
+                Item.ItemClass,
+                SpawnTransform
             );
 
+        if (SpawnedItem)
+        {
+            /*SpawnedItem->SetThrowPower(
+                Player->CurrentThrowPower
+            );*/
+
+            SpawnedItem->ProjectileMovement->InitialSpeed = Player->CurrentThrowPower;
+
+            FVector ThrowDirection =
+                Player->GetControlRotation().Vector();
+            UE_LOG(LogTemp, Warning, TEXT("Power: %f"), Player->CurrentThrowPower);
+            ThrowDirection.Z += 0.25f;
+
+            ThrowDirection.Normalize();
+
+            UGameplayStatics::FinishSpawningActor(SpawnedItem, SpawnTransform);
+
+            Player->GetWorldTimerManager().SetTimerForNextTick([=]()
+                {
+                    SpawnedItem->Throw(ThrowDirection, Player->CurrentThrowPower);
+                });
+
+            /*SpawnedItem->Throw(
+                ThrowDirection, Player->CurrentThrowPower
+            );*/
+        }
+
+        /*if (SpawnedItem)
+        {
+            FVector ThrowDirection =
+                Player->GetControlRotation().Vector();
+
+            float ThrowPower = 1500.f;
+
+            SpawnedItem->Throw(
+                ThrowDirection,
+                ThrowPower
+            );
+        }*/
         /*if (SpawnedItem)
         {
             SpawnedItem->UseItem(Player);
@@ -219,6 +275,7 @@ bool UInventoryComponent::UseItem(
     {
         Item = FInventoryItemData();
         Item.bIsEmpty = true;
+        Item.Count = 0;
     }
 
     OnInventoryUpdated.Broadcast();

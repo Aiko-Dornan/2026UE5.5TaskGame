@@ -26,7 +26,7 @@ ABaseItem::ABaseItem()
 
     //Mesh->SetSimulatePhysics(true);
     //Mesh->SetCollisionProfileName(TEXT("PhysicsActor"));
-    ////Mesh->SetSimulatePhysics(false);
+    Mesh->SetSimulatePhysics(false);
 
     //Mesh->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
     //Mesh->SetCollisionObjectType(ECC_WorldDynamic);

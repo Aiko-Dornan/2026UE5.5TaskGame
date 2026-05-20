@@ -132,10 +132,33 @@ void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
         EnhancedInput->BindAction(SneakAction, ETriggerEvent::Started, this, &APlayerCharacter::SneakStart);
         EnhancedInput->BindAction(SneakAction, ETriggerEvent::Completed, this, &APlayerCharacter::SneakEnd);
         EnhancedInput->BindAction(IA_InventoryScroll,ETriggerEvent::Triggered,this,&APlayerCharacter::OnInventoryScroll);
-        EnhancedInput->BindAction(IA_UseItem,ETriggerEvent::Started,this,&APlayerCharacter::OnUseItem);
+        EnhancedInput->BindAction(IA_UseItem,ETriggerEvent::Started,this,&APlayerCharacter::StartUseItem);
+        EnhancedInput->BindAction(IA_UseItem, ETriggerEvent::Completed, this, &APlayerCharacter::ReleaseUseItem);
     }
 
    
+}
+
+void APlayerCharacter::Tick(float DeltaTime)
+{
+    Super::Tick(DeltaTime);
+
+    if (bChargingThrow)
+    {
+        ThrowChargeTime += DeltaTime;
+
+        float Rate =
+            ThrowChargeTime / 2.f;
+
+        CurrentThrowPower =
+            FMath::Lerp(
+                800.f,
+                3500.f,
+                Rate
+            );
+
+        
+    }
 }
 
 void APlayerCharacter::Move(const FInputActionValue& Value)
@@ -235,6 +258,7 @@ void APlayerCharacter::OnUseItem()
     if (InventoryWidget)
     {
         InventoryWidget->UseSelectedItem();
+        UE_LOG(LogTemp, Warning, TEXT("Use Item Player"));
     }
 
     // すぐ戻す
@@ -355,3 +379,94 @@ void APlayerCharacter::MakeFootstepNoise()
         FName("FootStep")
     );
 }
+
+//投擲関連
+
+void APlayerCharacter::StartUseItem()
+{
+    UE_LOG(LogTemp, Warning, TEXT("Use Item Pr"));
+    if (!InventoryWidget) return;
+
+    EItemType Type =
+        InventoryWidget->GetSelectedItemType();
+
+    if (Type == EItemType::TRAPTHROW)
+    {
+        bChargingThrow = true;
+        ThrowChargeTime = 0.f;
+        UE_LOG(LogTemp, Warning, TEXT("Use Item T"));
+    }
+    else
+    {
+        UE_LOG(LogTemp, Warning, TEXT("Use Item D"));
+        OnUseItem();
+    }
+}
+
+void APlayerCharacter::ReleaseUseItem()
+{
+    if (bChargingThrow)
+    {
+        bChargingThrow = false;
+
+        OnUseItem();
+    }
+}
+
+//void APlayerCharacter::StartThrowCharge()
+//{
+//    bChargingThrow = true;
+//
+//    ThrowChargeTime = 0.f;
+//}
+//
+//void APlayerCharacter::ReleaseThrow()
+//{
+//    bChargingThrow = false;
+//
+//    float ChargeRate =
+//        ThrowChargeTime / MaxChargeTime;
+//
+//    float ThrowPower =
+//        FMath::Lerp(
+//            MinThrowPower,
+//            MaxThrowPower,
+//            ChargeRate
+//        );
+//
+//    
+//}
+
+//void APlayerCharacter::ThrowCurrentItem(
+//    float ThrowPower
+//)
+//{
+//    FVector SpawnLocation =
+//        GetActorLocation()
+//        + GetActorForwardVector() * 100.f;
+//
+//    FRotator SpawnRotation =
+//        GetControlRotation();
+//
+//    AThrowItem* SpawnedItem =
+//        GetWorld()->SpawnActor<AThrowItem>(
+//            ThrowItemClass,
+//            SpawnLocation,
+//            SpawnRotation
+//        );
+//
+//    if (SpawnedItem)
+//    {
+//        FVector ThrowDirection =
+//            GetControlRotation().Vector();
+//
+//        ThrowDirection.Z += 0.25f;
+//
+//        ThrowDirection.Normalize();
+//
+//        SpawnedItem->Throw(
+//            ThrowDirection,
+//            ThrowPower
+//        );
+//    }
+//}

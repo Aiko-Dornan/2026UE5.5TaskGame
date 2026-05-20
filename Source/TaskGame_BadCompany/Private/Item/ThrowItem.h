@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Item/BaseItem.h"
+#include "GameFramework/ProjectileMovementComponent.h"
 #include "ThrowItem.generated.h"
 
 /**
@@ -24,6 +25,12 @@ class AThrowItem : public ABaseItem
 	GENERATED_BODY()
 	
 public:
+
+    AThrowItem();
+
+    void Throw(const FVector& Direction, float ThrowPower);
+
+
     UFUNCTION()
     void FireMine();//地雷炸裂
     void SearchMine();//地雷の周囲に敵がいないか探知
@@ -36,10 +43,36 @@ public:
 
     void WaitFireTime();//時限式のアイテムが起動するまでの待ち時間
 
+    void SetThrowPower(float NewPower);
+
     //virtual void UseItem(APlayerCharacter* Player) override;
+protected:
+    virtual void BeginPlay() override;
+    //virtual void Tick(float DeltaTime) override;
+
 
 public:
    /* UPROPERTY(EditAnywhere, BlueprintReadWrite)
     EThrowItemType ThrowType;*/
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ThrowItem")
+    float ItemGravityScale = 1.0f;
+    UPROPERTY(EditAnywhere, BlueprintReadWrite,Category="ThrowItem")
+    bool bIsBounce = true;
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ThrowItem")
+    float ItemBouncePower = 0.3f;
+
+    float ThrowPower2 = 0.0f;
+
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+    UProjectileMovementComponent* ProjectileMovement;
+
+
+protected:
+
+    
+
+    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "ThrowItem")
+    bool bIsThrown = false;
 
 };

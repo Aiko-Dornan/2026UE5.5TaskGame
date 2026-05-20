@@ -35,6 +35,8 @@ public:
     UFUNCTION()
     void UseSelectedItem();
 
+    EItemType GetSelectedItemType() const;
+
 private:
 
     UPROPERTY()
