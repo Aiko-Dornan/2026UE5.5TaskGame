@@ -328,6 +328,7 @@ void AEnemyAIController::UpdateAI()
             // ★ 到達したらCautionへ
             if (Distance < 60.f)
             {
+                
                 CurrentState = EEnemyState::Caution;
                 UE_LOG(LogTemp, Warning, TEXT("%s: Investigate -> Caution"), *GetName());
             }
@@ -693,11 +694,12 @@ void AEnemyAIController::OnTargetPerceptionUpdated(AActor* Actor, FAIStimulus St
             APlayerCharacter* Player = Cast<APlayerCharacter>(Actor);
 
             bool bPlayerInRestricted = false;
+            bool bIsStealth = false;
 
             if (Player)
             {
                 bPlayerInRestricted = Player->bIsInRestrictedArea;
-                
+                bIsStealth = Player->bIsCrouchingStealth;
             }
 
             HeardLocation = Stimulus.StimulusLocation;
@@ -706,9 +708,9 @@ void AEnemyAIController::OnTargetPerceptionUpdated(AActor* Actor, FAIStimulus St
             bHeardSound = true;
 
             // 足音タグなど
-            if ((bIsSuspicion||bIsDistrust) && Stimulus.Tag == "FootStep"|| bPlayerInRestricted && Stimulus.Tag == "FootStep" || Stimulus.Tag == "GunShot")
+            if (((bIsSuspicion||bIsDistrust) && (Stimulus.Tag == "FootStep"|| bPlayerInRestricted && Stimulus.Tag == "FootStep" ))|| Stimulus.Tag == "GunShot")
             {
-                if (!HeardOnce&&!Player->bIsCrouchingStealth || Stimulus.Tag == "GunShot")
+                if (!HeardOnce&&(!bIsStealth || Stimulus.Tag == "GunShot"))
                 {
                     // Patrol解除
                     bIsPatrolling = false;
@@ -717,6 +719,7 @@ void AEnemyAIController::OnTargetPerceptionUpdated(AActor* Actor, FAIStimulus St
 
                     // 調査地点設定
                     FirstDetectLocation = HeardLocation;
+                   // FirstDetectLocation.Z = GetActorLocation().Z;
                     bHasStoredFirstDetectLocation = true;
 
                     StopMovement();

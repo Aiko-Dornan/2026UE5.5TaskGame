@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "Item/BaseItem.h"
 #include "GameFramework/ProjectileMovementComponent.h"
+#include "Perception/AISense_Hearing.h"
 #include "ThrowItem.generated.h"
 
 /**
@@ -30,8 +31,8 @@ public:
 
     void Throw(const FVector& Direction, float ThrowPower);
 
-    UFUNCTION()
-    void OnThrowItemStop(const FHitResult& ImpactResult);
+    /*UFUNCTION()
+    void OnThrowItemStop(const FHitResult& ImpactResult);*/
 
     UFUNCTION()
     void OnMeshHit(
@@ -41,6 +42,20 @@ public:
         FVector NormalImpulse,
         const FHitResult& Hit
     );
+
+    /*UFUNCTION()
+    void OnProjectileBounce(
+        const FHitResult& ImpactResult,
+        const FVector& ImpactVelocity
+    );
+
+    UFUNCTION()
+    void OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor,
+        UPrimitiveComponent* OtherComp, FVector NormalImpulse,
+        const FHitResult& Hit);*/
+
+    void TouchObject();
+
 
     UFUNCTION()
     void FireMine();//地雷炸裂
@@ -54,7 +69,7 @@ public:
 
     void WaitFireTime();//時限式のアイテムが起動するまでの待ち時間
 
-    void SetThrowPower(float NewPower);
+    //void SetThrowPower(float NewPower);
 
 
 
@@ -75,7 +90,17 @@ public:
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ThrowItem")
     float ItemBouncePower = 0.3f;
 
-    float ThrowPower2 = 0.0f;
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ThrowItem")
+    float ItemFrictionPower = 2.0f;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ThrowItem")
+    float ItemStopSpeed = 50.0f;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Stealth")
+    float ItemSoundLoudness = 1.0f;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Stealth")
+    float ItemSoundRange = 1200.f;
 
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
     UProjectileMovementComponent* ProjectileMovement;
@@ -87,5 +112,9 @@ protected:
 
     UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "ThrowItem")
     bool bIsThrown = false;
+
+private:
+    FTimerHandle TouchFlagTimerHandle;
+    bool bIsTouchObject = false;
 
 };
