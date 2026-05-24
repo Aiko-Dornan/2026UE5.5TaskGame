@@ -2,7 +2,7 @@
 
 
 #include "Item/ThrowItem.h"
-//#include "Kismet/GameplayStatics.h"
+#include "Kismet/GameplayStatics.h"
 //#include "PlayerCharacter.h"
 
 AThrowItem::AThrowItem()
@@ -39,7 +39,27 @@ AThrowItem::AThrowItem()
     ProjectileMovement->InitialSpeed = 0.f;
     ProjectileMovement->MaxSpeed = 9000.f;
 
-   
+    if (ThrowType == EThrowItemType::MINE)
+    {
+        SearchSphere =
+            CreateDefaultSubobject<USphereComponent>(
+                TEXT("SearchSphere")
+            );
+
+        SearchSphere->SetupAttachment(RootComponent);
+
+        SearchSphere->SetSphereRadius(SearchRadius);
+
+        /*SearchSphere->SetCollisionEnabled(
+            ECollisionEnabled::QueryOnly
+        );*/
+    }
+    else
+    {
+        /*SearchSphere->SetCollisionEnabled(
+            ECollisionEnabled::NoCollision
+        );*/
+    }
 
     //PrimaryActorTick.bCanEverTick = true;
 
@@ -102,39 +122,7 @@ void AThrowItem::BeginPlay()
 
     
 
-    /*Mesh->OnComponentHit.AddDynamic(
-        this,
-        &AThrowItem::OnMeshHit
-    );
-
-    ProjectileMovement->OnProjectileBounce.AddDynamic(
-        this,
-        &AThrowItem::OnProjectileBounce
-    );
-
-    Mesh->OnComponentHit.AddDynamic(
-        this,
-        &AThrowItem::OnHit
-    );*/
-
-    /*if (ProjectileMovement)
-    {
-
-        ProjectileMovement->OnProjectileBounce.RemoveDynamic(
-            this,
-            &AThrowItem::OnProjectileBounce
-        );
-
-        ProjectileMovement->OnProjectileBounce.AddDynamic(
-            this,
-            &AThrowItem::OnProjectileBounce
-        );
-
-    }
-    else
-    {
-        UE_LOG(LogTemp, Warning,TEXT("No Bounce: ") );
-    }*/
+    
 
     if (Mesh)
     {
@@ -269,7 +257,11 @@ void AThrowItem::OnMeshHit(
         switch (ThrowType)
         {
         case EThrowItemType::MINE:
-            FireMine();
+            if (bMineArmed)
+            {
+                FireMine();
+            }
+            
             break;
 
         case EThrowItemType::SOUND:
@@ -310,57 +302,67 @@ void AThrowItem::TouchObject()
     bIsTouchObject = false;
 }
 
-//void AThrowItem::OnProjectileBounce(
-//    const FHitResult& ImpactResult,
-//    const FVector& ImpactVelocity
-//)
-//{
-//    UE_LOG(LogTemp, Warning,
-//        TEXT("Bounce! Hit Actor : %s"),
-//        *GetNameSafe(ImpactResult.GetActor())
-//    );
-//
-//    switch (ThrowType)
-//    {
-//    case EThrowItemType::MINE:
-//        FireMine();
-//        break;
-//
-//    case EThrowItemType::SOUND:
-//        FireSound();
-//        break;
-//
-//    case EThrowItemType::SMOKE:
-//        FireSmoke();
-//        break;
-//
-//    case EThrowItemType::FIREWALL:
-//        CreateFireWall();
-//        break;
-//    }
-//}
-//
-//void AThrowItem::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor,
-//    UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
-//{
-//    UE_LOG(LogTemp, Warning, TEXT("Hit Actor: %s (comp: %s)"),
-//        *OtherActor->GetName(),
-//        *OtherComp->GetName());
-//
-//    if (OtherActor && OtherActor != this)
-//    {
-//        UE_LOG(LogTemp, Warning, TEXT("Hit!!"));
-//
-//      
-//
-//
-//        Destroy();
-//    }
-//}
+void AThrowItem::OnSearchSphereOverlap(
+    UPrimitiveComponent* OverlappedComponent,
+    AActor* OtherActor,
+    UPrimitiveComponent* OtherComp,
+    int32 OtherBodyIndex,
+    bool bFromSweep,
+    const FHitResult& SweepResult
+)
+{
+    if (!OtherActor) return;
+
+    AEnemyCharacter* Enemy =
+        Cast<AEnemyCharacter>(OtherActor);
+
+    if (Enemy)
+    {
+        UE_LOG(LogTemp, Warning,
+            TEXT("Enemy Found : %s"),
+            *Enemy->GetName()
+        );
+        bMineArmed = true;
+        // ここで好きな処理
+        
+    }
+}
 
 void AThrowItem::SearchMine()
 {
+    TArray<AActor*> OverlappedActors;
 
+    TArray<TEnumAsByte<EObjectTypeQuery>> ObjectTypes;
+    ObjectTypes.Add(
+        UEngineTypes::ConvertToObjectType(ECC_Pawn)
+    );
+
+    TArray<AActor*> IgnoreActors;
+    IgnoreActors.Add(this);
+
+    UKismetSystemLibrary::SphereOverlapActors(
+        GetWorld(),
+        GetActorLocation(),
+        SearchRadius,
+        ObjectTypes,
+        AEnemyCharacter::StaticClass(),
+        IgnoreActors,
+        OverlappedActors
+    );
+
+    for (AActor* Actor : OverlappedActors)
+    {
+        AEnemyCharacter* Enemy =
+            Cast<AEnemyCharacter>(Actor);
+
+        if (Enemy)
+        {
+            UE_LOG(LogTemp, Warning,
+                TEXT("Mine Detect Enemy : %s"),
+                *Enemy->GetName()
+            );
+        }
+    }
 
 
 }
@@ -368,7 +370,10 @@ void AThrowItem::SearchMine()
 void AThrowItem::FireMine()
 {
 
+    UE_LOG(LogTemp, Warning,
+        TEXT("Mine Exprosion!!"));
 
+    Destroy();
 
 }
 

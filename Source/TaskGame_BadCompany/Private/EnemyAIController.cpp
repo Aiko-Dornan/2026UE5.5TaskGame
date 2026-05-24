@@ -719,7 +719,7 @@ void AEnemyAIController::OnTargetPerceptionUpdated(AActor* Actor, FAIStimulus St
 
                     // 調査地点設定
                     FirstDetectLocation = HeardLocation;
-                   // FirstDetectLocation.Z = GetActorLocation().Z;
+                   FirstDetectLocation.Z = GetPawn()->GetActorLocation().Z;
                     bHasStoredFirstDetectLocation = true;
 
                     StopMovement();

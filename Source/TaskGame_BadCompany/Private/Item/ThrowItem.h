@@ -5,7 +5,9 @@
 #include "CoreMinimal.h"
 #include "Item/BaseItem.h"
 #include "GameFramework/ProjectileMovementComponent.h"
+#include "Components/SphereComponent.h"
 #include "Perception/AISense_Hearing.h"
+#include "EnemyCharacter.h"
 #include "ThrowItem.generated.h"
 
 /**
@@ -56,6 +58,15 @@ public:
 
     void TouchObject();
 
+    UFUNCTION()
+    void OnSearchSphereOverlap(
+        UPrimitiveComponent* OverlappedComponent,
+        AActor* OtherActor,
+        UPrimitiveComponent* OtherComp,
+        int32 OtherBodyIndex,
+        bool bFromSweep,
+        const FHitResult& SweepResult
+    );
 
     UFUNCTION()
     void FireMine();//地雷炸裂
@@ -82,35 +93,42 @@ protected:
 public:
     UPROPERTY(EditAnywhere, BlueprintReadWrite)
     EThrowItemType ThrowType;
-
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ThrowItem")
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item|ThrowItem")
     float ItemGravityScale = 1.0f;
-    UPROPERTY(EditAnywhere, BlueprintReadWrite,Category="ThrowItem")
+    UPROPERTY(EditAnywhere, BlueprintReadWrite,Category="Item|ThrowItem")
     bool bIsBounce = true;
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ThrowItem")
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item|ThrowItem")
     float ItemBouncePower = 0.3f;
 
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ThrowItem")
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item|ThrowItem")
     float ItemFrictionPower = 2.0f;
 
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ThrowItem")
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item|ThrowItem")
     float ItemStopSpeed = 50.0f;
 
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Stealth")
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item|ThrowItem")
     float ItemSoundLoudness = 1.0f;
 
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Stealth")
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item|ThrowItem")
     float ItemSoundRange = 1200.f;
 
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
     UProjectileMovementComponent* ProjectileMovement;
 
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Search")
+    USphereComponent* SearchSphere;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Search")
+    float SearchRadius = 500.0f;
+
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+    bool bMineArmed = false;
 
 protected:
 
     
 
-    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "ThrowItem")
+    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Item|ThrowItem")
     bool bIsThrown = false;
 
 private:
