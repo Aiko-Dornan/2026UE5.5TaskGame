@@ -15,7 +15,8 @@ enum class EEnemyMoveState : uint8
 {
     Idle,
     Caution,
-    Chase
+    Chase,
+    Stop
 };
 
 
@@ -29,16 +30,21 @@ public:
     virtual void Tick(float DeltaTime) override;
     void SetMoveState(EEnemyMoveState NewState);
 
+    void StunEnemy(float StunTime);
+
+    void RecoverFromStun();
+
 protected:
     virtual void BeginPlay() override;
 
 public:
     //敵の移動速度
     UPROPERTY(EditAnywhere,/* BlueprintReadWrite,*/ Category = "Enemy")
-    float EnemyMoveSpeed[3] = { 
+    float EnemyMoveSpeed[4] = { 
         300.0f,//Idle
         10.0f,//Cation
-        500.0f//Chase
+        500.0f,//Chase
+        0.0f//Stop
                               };
 
     //敵キャラの認識範囲
@@ -58,6 +64,15 @@ public:
     TArray<ATargetPoint*> EnemyPatrolPoints;//巡回ポイント用のアクタ。敵はこれを目指す。
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AIState")
-    int StateNum = 0;
+    int StateNum = 0; UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AIState")
+    EEnemyMoveState PreviousMoveState;
+
+    bool bIsStunned;
+
+private:
+    FTimerHandle StunTimerHandle;
+   
+    // 現在の状態
+    EEnemyMoveState CurrentMoveState;
 
 };

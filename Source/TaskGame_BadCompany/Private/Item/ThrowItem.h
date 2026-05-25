@@ -58,8 +58,19 @@ public:
 
     void TouchObject();
 
-    UFUNCTION()
+   /* UFUNCTION()
     void OnSearchSphereOverlap(
+        UPrimitiveComponent* OverlappedComponent,
+        AActor* OtherActor,
+        UPrimitiveComponent* OtherComp,
+        int32 OtherBodyIndex,
+        bool bFromSweep,
+        const FHitResult& SweepResult
+    );*/
+
+    // ===== 地雷探知 =====
+    UFUNCTION()
+    void OnMineOverlap(
         UPrimitiveComponent* OverlappedComponent,
         AActor* OtherActor,
         UPrimitiveComponent* OtherComp,
@@ -68,9 +79,14 @@ public:
         const FHitResult& SweepResult
     );
 
+    // ===== 地雷設置 =====
+    void CheckMineStopped();
+
+    void ActivateMine();
+
     UFUNCTION()
     void FireMine();//地雷炸裂
-    void SearchMine();//地雷の周囲に敵がいないか探知
+   // void SearchMine();//地雷の周囲に敵がいないか探知
 
     void FireSound();//音で周辺の敵を呼び寄せる。
 
@@ -115,14 +131,23 @@ public:
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
     UProjectileMovementComponent* ProjectileMovement;
 
-    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Search")
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Item|Mine")
     USphereComponent* SearchSphere;
 
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Search")
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item|Mine")
     float SearchRadius = 500.0f;
 
-    UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-    bool bMineArmed = false;
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item|Mine")
+    float WaitExplosionTime = 0.5f;//起爆待機時間
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item|Mine")
+    float MineStunTime = 3.0f;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item|ThrowItem")
+    float TouchTime = 0.1f;//地面に当たると音が鳴る関数を短時間に呼びすぎないようにする待機時間
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item|ThrowItem")
+    float ReduceThrowPower = 10.0f;//投げるときのパワーを削る変数。
 
 protected:
 
@@ -134,5 +159,16 @@ protected:
 private:
     FTimerHandle TouchFlagTimerHandle;
     bool bIsTouchObject = false;
+
+    FTimerHandle ExplosionMineTimerHandle;
+    // ===== 地雷起動済み =====
+    bool bMineActivated = false;
+
+    // ===== 多重爆発防止 =====
+    bool bExploded = false;
+
+    float BeforeEnemySpeed = 200.0f;
+
+    FTimerHandle MineCheckTimerHandle;
 
 };

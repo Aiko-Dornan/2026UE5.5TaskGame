@@ -178,16 +178,18 @@ void AThrowItem::Throw(
 
     ProjectileMovement->SetUpdatedComponent(Mesh);
 
-    FVector Velocity = Direction.GetSafeNormal() * ThrowPower;
+    //ThrowPower -= ReduceThrowPower;
+
+   /* FVector Velocity = Direction.GetSafeNormal() * ThrowPower;
 
     ProjectileMovement->Velocity = Velocity;
-    ProjectileMovement->Activate(true);
+    ProjectileMovement->Activate(true);*/
 
     //ProjectileMovement->InitialSpeed = ThrowPower;
 
-    //UE_LOG(LogTemp, Warning,
-    //    TEXT("ThrowPower IN ITEM: %f"),
-    //    ThrowPower);
+    UE_LOG(LogTemp, Warning,
+        TEXT("ThrowPower IN ITEM: %f"),
+        ThrowPower);
 
     //UE_LOG(LogTemp, Warning,
     //    TEXT("InitialSpeedPower IN ITEM: %f"),
@@ -257,9 +259,24 @@ void AThrowItem::OnMeshHit(
         switch (ThrowType)
         {
         case EThrowItemType::MINE:
-            if (bMineArmed)
+
+            SetActorRotation(FRotator(0.0f, 0.0f, GetActorRotation().Roll));
+
+            // 床に着地した時だけ
+            if (!bMineActivated)
             {
-                FireMine();
+                if (Hit.ImpactNormal.Z > 0.7f)
+                {
+                    
+
+                    GetWorldTimerManager().SetTimer(
+                        MineCheckTimerHandle,
+                        this,
+                        &AThrowItem::CheckMineStopped,
+                        0.1f,
+                        true
+                    );
+                }
             }
             
             break;
@@ -286,7 +303,7 @@ void AThrowItem::OnMeshHit(
         TouchFlagTimerHandle,
         this,
         &AThrowItem::TouchObject,
-        0.1f,
+        TouchTime,
         false
     );
     
@@ -302,7 +319,39 @@ void AThrowItem::TouchObject()
     bIsTouchObject = false;
 }
 
-void AThrowItem::OnSearchSphereOverlap(
+void AThrowItem::ActivateMine()
+{
+    if (bMineActivated) return;
+
+    UE_LOG(LogTemp, Warning,
+        TEXT("Mine Activated")
+    );
+
+    bMineActivated = true;
+
+    ProjectileMovement->StopMovementImmediately();
+
+    // 地雷探知開始
+
+    SearchSphere->OnComponentBeginOverlap.RemoveDynamic(
+        this,
+        &AThrowItem::OnMineOverlap
+    );
+
+    SearchSphere->OnComponentBeginOverlap.AddDynamic(
+        this,
+        &AThrowItem::OnMineOverlap
+    );
+
+    SearchSphere->SetCollisionEnabled(
+        ECollisionEnabled::QueryOnly
+    );
+
+   
+
+}
+
+void AThrowItem::OnMineOverlap(
     UPrimitiveComponent* OverlappedComponent,
     AActor* OtherActor,
     UPrimitiveComponent* OtherComp,
@@ -311,60 +360,55 @@ void AThrowItem::OnSearchSphereOverlap(
     const FHitResult& SweepResult
 )
 {
-    if (!OtherActor) return;
+    if (!bMineActivated) return;
+
+    if (bExploded) return;
 
     AEnemyCharacter* Enemy =
         Cast<AEnemyCharacter>(OtherActor);
 
-    if (Enemy)
-    {
-        UE_LOG(LogTemp, Warning,
-            TEXT("Enemy Found : %s"),
-            *Enemy->GetName()
-        );
-        bMineArmed = true;
-        // ここで好きな処理
-        
-    }
+    if (!Enemy) return;
+
+    bExploded = true;
+
+    UE_LOG(LogTemp, Warning,
+        TEXT("Mine Detect Enemy : %s"),
+        *Enemy->GetName()
+    );
+
+    GetWorldTimerManager().SetTimer(
+        ExplosionMineTimerHandle,
+        this,
+        &AThrowItem::FireMine,
+        WaitExplosionTime,
+        false
+    );
+
+    //FireMine();
 }
 
-void AThrowItem::SearchMine()
+void AThrowItem::CheckMineStopped()
 {
-    TArray<AActor*> OverlappedActors;
+    if (!ProjectileMovement) return;
 
-    TArray<TEnumAsByte<EObjectTypeQuery>> ObjectTypes;
-    ObjectTypes.Add(
-        UEngineTypes::ConvertToObjectType(ECC_Pawn)
+    float Speed =
+        ProjectileMovement->Velocity.Size();
+
+    UE_LOG(LogTemp, Warning,
+        TEXT("Mine Speed : %f"),
+        Speed
     );
 
-    TArray<AActor*> IgnoreActors;
-    IgnoreActors.Add(this);
-
-    UKismetSystemLibrary::SphereOverlapActors(
-        GetWorld(),
-        GetActorLocation(),
-        SearchRadius,
-        ObjectTypes,
-        AEnemyCharacter::StaticClass(),
-        IgnoreActors,
-        OverlappedActors
-    );
-
-    for (AActor* Actor : OverlappedActors)
+    if (Speed <= 2.0f)
     {
-        AEnemyCharacter* Enemy =
-            Cast<AEnemyCharacter>(Actor);
+        GetWorldTimerManager().ClearTimer(
+            MineCheckTimerHandle
+        );
 
-        if (Enemy)
-        {
-            UE_LOG(LogTemp, Warning,
-                TEXT("Mine Detect Enemy : %s"),
-                *Enemy->GetName()
-            );
-        }
+        ActivateMine();
+
+        SetActorRotation(FRotator(0.0f, 0.0f, 0.0f));
     }
-
-
 }
 
 void AThrowItem::FireMine()
@@ -372,6 +416,29 @@ void AThrowItem::FireMine()
 
     UE_LOG(LogTemp, Warning,
         TEXT("Mine Exprosion!!"));
+
+    TArray<AActor*> OverlapActors;
+
+    UKismetSystemLibrary::SphereOverlapActors(
+        GetWorld(),
+        GetActorLocation(),
+        SearchRadius,
+        TArray<TEnumAsByte<EObjectTypeQuery>>(),
+        AEnemyCharacter::StaticClass(),
+        TArray<AActor*>(),
+        OverlapActors
+    );
+
+    for (AActor* Actor : OverlapActors)
+    {
+        AEnemyCharacter* Enemy =
+            Cast<AEnemyCharacter>(Actor);
+
+        if (Enemy)
+        {
+            Enemy->StunEnemy(MineStunTime);
+        }
+    }
 
     Destroy();
 

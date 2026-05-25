@@ -217,6 +217,8 @@ bool UInventoryComponent::UseItem(
             /*SpawnedItem->SetThrowPower(
                 Player->CurrentThrowPower
             );*/
+            Player->CurrentThrowPower -= SpawnedItem->ReduceThrowPower;
+
 
             SpawnedItem->ProjectileMovement->InitialSpeed = Player->CurrentThrowPower;
 

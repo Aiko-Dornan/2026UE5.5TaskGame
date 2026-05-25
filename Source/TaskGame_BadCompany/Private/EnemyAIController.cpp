@@ -131,11 +131,27 @@ void AEnemyAIController::UpdateLOD()
 
 void AEnemyAIController::UpdateAI()
 {
+    if (bInSmoke)
+    {
+        bCurrentlySeeingTarget = false;
+        TargetActor = nullptr;
+
+        if (CurrentState != EEnemyState::Caution)
+        {
+            StopMovement();
+
+            CurrentState = EEnemyState::Caution;
+        }
+    }
+
     UpdateLOD();
 
     AEnemyCharacter* EnemyChar = Cast<AEnemyCharacter>(GetPawn());
 
-    
+    if (EnemyChar->bIsStunned)
+    {
+        return;
+    }
 
     APlayerCharacter* Player =
         Cast<APlayerCharacter>(UGameplayStatics::GetPlayerPawn(GetWorld(), 0));
@@ -995,7 +1011,7 @@ void AEnemyAIController::StartPatrol()
     MoveToNextPatrolPoint();
 }
 
-void AEnemyAIController::MoveToNextPatrolPoint()
+ void AEnemyAIController::MoveToNextPatrolPoint()
 {
     if (!bIsPatrolling || PatrolPoints.Num() <= 1) return;
 

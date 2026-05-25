@@ -66,7 +66,8 @@ public:
     //プレイヤーを発見したことを他の敵から受け取る用の関数
     void OnAlertedByAlly(AActor* PlayerActor);
 
-
+    void StartPatrol();         //巡回を開始する関数
+    void MoveToNextPatrolPoint();//次のポイントに目標を変える関数
 
 protected:
     virtual void BeginPlay() override;
@@ -78,8 +79,8 @@ protected:
 
     void UpdateDetectionSources();//感知ゲージ増加
 
-    void StartPatrol();         //巡回を開始する関数
-    void MoveToNextPatrolPoint();//次のポイントに目標を変える関数
+    
+    
     bool StanbyOrIdle();
     void SourceBisActive(FDetectionSource AllSource);//bIsActiveの判定をここにまとめる。
    /* void OnMoveCompleted(
@@ -209,7 +210,7 @@ private:
     UPROPERTY(EditAnywhere, Category = "AI|Patrol")
     float PatrolAcceptanceRadius = 100.f;
 
-    bool bIsPatrolling = false;//パトロール中かどうか判断用のフラグ。
+    
 
     //State::Search時に使う変数
     FVector SearchCenter;
@@ -221,6 +222,10 @@ private:
 
 public:
    
+    bool bInSmoke = false;//スモークグレネードなどの視界妨害オブジェクト内にいるか
+
+    bool bIsPatrolling = false;//パトロール中かどうか判断用のフラグ。
+
     bool bIsFirstDiscoverer = false; // 第一発見者か
     bool bHasAlertedAllies = false;  // すでに通報したか
     bool bIsSensingTerms = false;
