@@ -221,7 +221,7 @@ void APlayerCharacter::Interact()
     if (bHit)
     {
         ABaseItem* Item = Cast<ABaseItem>(Hit.GetActor());
-        if (Item)//Hitしたのがアイテムだったら
+        if (Item&&!Item->ImpossiblePick)//Hitしたのがアイテムだったら
         {
             Item->OnPickedUp(this);//取得を実行
         }
@@ -298,8 +298,10 @@ void APlayerCharacter::TraceForItem()
         {
             CurrentItem->SetHighlight(true);
         }*/
-
-        UpdateInteractUI(CurrentItem);
+        
+            UpdateInteractUI(CurrentItem);
+        
+        
     }
 }
 
@@ -308,7 +310,7 @@ void APlayerCharacter::UpdateInteractUI(ABaseItem* NewItem)
    
         if (!InteractWidget) return;
 
-        if (NewItem)
+        if (NewItem&&!NewItem->ImpossiblePick)
         {
             FString Text = NewItem->ItemData.ItemName.ToString() + NewItem->InteractText.ToString();
 

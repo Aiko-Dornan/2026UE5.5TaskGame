@@ -150,9 +150,7 @@ private:
 
     //float CautionTimer = 0.f;
 
-    // ===== State =====
-    UPROPERTY(VisibleAnywhere, Category = "AI|Detection")
-    EEnemyState CurrentState = EEnemyState::Idle;
+    
 
    
 
@@ -171,13 +169,59 @@ private:
     //最後にプレイヤーを発見した位置を保管してあるかどうか
     bool bLockLastKnownLocation = false;
 
+    
+
+    bool bIsDistrust = false;//長期的な判断用のフラグ。過去に条件を満たしていたかどうか。
+    
+
+   
+
+    // ===== Patrol =====
+    UPROPERTY()
+    TArray<ATargetPoint*> PatrolPoints;//巡回ポイント用のアクタ。敵はこれを目指す。
+
+    int32 CurrentPatrolIndex = 0;//現在何個目の巡回ポイントを目指しているか
+
+    UPROPERTY(EditAnywhere, Category = "AI|Patrol")
+    float PatrolAcceptanceRadius = 100.f;
+
+    
+
+    
+
+public:
+   
     //最初にプレイヤーを発見した位置
     FVector FirstDetectLocation;
     //最初にプレイヤーを発見した時用のフラグ
     bool bHasStoredFirstDetectLocation = false;
 
-    bool bIsDistrust = false;//長期的な判断用のフラグ。過去に条件を満たしていたかどうか。
-    
+    // ===== State =====
+    UPROPERTY(VisibleAnywhere, Category = "AI|Detection")
+    EEnemyState CurrentState = EEnemyState::Idle;
+
+    bool bInSmoke = false;//スモークグレネードなどの視界妨害オブジェクト内にいるか
+
+    bool bIsPatrolling = false;//パトロール中かどうか判断用のフラグ。
+
+    bool bIsFirstDiscoverer = false; // 第一発見者か
+    bool bHasAlertedAllies = false;  // すでに通報したか
+    bool bIsSensingTerms = false;
+    AActor* SeenHeardObject=nullptr;
+
+    bool bHeardSound = false;//音を聞いたかどうか
+    FVector HeardLocation;//聞こえた場所
+    bool HeardOnce = false;//1度音を聞いたかどうか、聞いたならスキャン完了まで聴覚関数には移動しない
+
+    UPROPERTY(EditAnywhere,BlueprintReadWrite, Category = "AI|Detection")
+    float AlertRadius=2000.0f;      //第一発見者から他の敵に連鎖する範囲
+   
+    // ===== Detection Sources =====
+    FDetectionSource SightSource;
+    FDetectionSource RestrictedAreaSource;
+
+    UPROPERTY(EditAnywhere, BlueprintReadOnly)
+    bool bIsSuspicion = false;//短期的な判断フラグ。敵がアイドル形態に戻るまで維持する。
 
     // ★ 初動停止用
     bool bIsAlertWaiting = false;
@@ -201,17 +245,6 @@ private:
     bool bIsScanEnd = false;
     bool bIsPlayerInTabooArea = false;
 
-    // ===== Patrol =====
-    UPROPERTY()
-    TArray<ATargetPoint*> PatrolPoints;//巡回ポイント用のアクタ。敵はこれを目指す。
-
-    int32 CurrentPatrolIndex = 0;//現在何個目の巡回ポイントを目指しているか
-
-    UPROPERTY(EditAnywhere, Category = "AI|Patrol")
-    float PatrolAcceptanceRadius = 100.f;
-
-    
-
     //State::Search時に使う変数
     FVector SearchCenter;
     FVector RandomMoveLocation;
@@ -220,28 +253,4 @@ private:
     float SearchTimer = 0.f;
     bool bIsArrivedSearchLocation = false;
 
-public:
-   
-    bool bInSmoke = false;//スモークグレネードなどの視界妨害オブジェクト内にいるか
-
-    bool bIsPatrolling = false;//パトロール中かどうか判断用のフラグ。
-
-    bool bIsFirstDiscoverer = false; // 第一発見者か
-    bool bHasAlertedAllies = false;  // すでに通報したか
-    bool bIsSensingTerms = false;
-    AActor* SeenHeardObject=nullptr;
-
-    bool bHeardSound = false;//音を聞いたかどうか
-    FVector HeardLocation;//聞こえた場所
-    bool HeardOnce = false;//1度音を聞いたかどうか、聞いたならスキャン完了まで聴覚関数には移動しない
-
-    UPROPERTY(EditAnywhere,BlueprintReadWrite, Category = "AI|Detection")
-    float AlertRadius=2000.0f;      //第一発見者から他の敵に連鎖する範囲
-   
-    // ===== Detection Sources =====
-    FDetectionSource SightSource;
-    FDetectionSource RestrictedAreaSource;
-
-    UPROPERTY(EditAnywhere, BlueprintReadOnly)
-    bool bIsSuspicion = false;//短期的な判断フラグ。敵がアイドル形態に戻るまで維持する。
 };

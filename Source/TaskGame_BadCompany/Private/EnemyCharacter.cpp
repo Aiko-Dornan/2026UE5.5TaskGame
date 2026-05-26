@@ -72,6 +72,13 @@ void AEnemyCharacter::SetMoveState(EEnemyMoveState NewState)
     }
 }
 
+void AEnemyCharacter::SetPreviousState()
+{
+    // 停止前の状態を保存
+    PreviousMoveState = CurrentMoveState;
+
+}
+
 void AEnemyCharacter::StunEnemy(float StunTime)
 {
 
@@ -92,9 +99,8 @@ void AEnemyCharacter::StunEnemy(float StunTime)
     }
 
     bIsStunned = true;
-    // 停止前の状態を保存
-    PreviousMoveState = CurrentMoveState;
-
+    
+    SetPreviousState();
     // 移動停止
     SetMoveState(EEnemyMoveState::Stop);
 

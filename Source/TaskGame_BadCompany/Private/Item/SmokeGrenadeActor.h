@@ -2,11 +2,12 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
+#include "Item/ThrowItem.h"
 #include "Components/SphereComponent.h"
 #include "SmokeGrenadeActor.generated.h"
 
 UCLASS()
-class TASKGAME_BADCOMPANY_API ASmokeGrenadeActor : public AActor
+class TASKGAME_BADCOMPANY_API ASmokeGrenadeActor : public AThrowItem
 {
     GENERATED_BODY()
 
@@ -36,6 +37,14 @@ protected:
         int32 OtherBodyIndex
     );
 
+    virtual void OnThrowItemHit(
+        const FHitResult& Hit) override;
+
+    UFUNCTION()
+    void ActivateSmoke();
+
+    void SetSearchPoint(AActor* Actor);
+
 public:
 
     UPROPERTY(VisibleAnywhere)
@@ -46,4 +55,9 @@ public:
 
     UPROPERTY(EditAnywhere)
     float SmokeLifeTime = 10.f;
+
+private:
+
+    bool bSmokeActivated = false;
+
 };

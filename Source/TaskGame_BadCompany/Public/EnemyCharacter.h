@@ -30,6 +30,8 @@ public:
     virtual void Tick(float DeltaTime) override;
     void SetMoveState(EEnemyMoveState NewState);
 
+    void SetPreviousState();
+
     void StunEnemy(float StunTime);
 
     void RecoverFromStun();

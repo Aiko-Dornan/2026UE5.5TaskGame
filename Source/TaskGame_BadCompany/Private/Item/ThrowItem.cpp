@@ -169,7 +169,12 @@ void AThrowItem::Throw(
     
 )
 {
-   
+    if (ThrowType!=EThrowItemType::SOUND&& ThrowType != EThrowItemType::MINE)
+    {
+        ImpossiblePick = true;
+    }
+
+
     bIsThrown = true;
 
     if (!ProjectileMovement || !Mesh) return;
@@ -287,10 +292,12 @@ void AThrowItem::OnMeshHit(
 
         case EThrowItemType::SMOKE:
             FireSmoke();
+            OnThrowItemHit(Hit);
             break;
 
         case EThrowItemType::FIREWALL:
             CreateFireWall();
+            OnThrowItemHit(Hit);
             break;
         }
 
@@ -312,6 +319,11 @@ void AThrowItem::OnMeshHit(
     // 投擲終了フラグ
     bIsThrown = false;
 
+}
+
+void AThrowItem::OnThrowItemHit(
+    const FHitResult& Hit)
+{
 }
 
 void AThrowItem::TouchObject()
@@ -458,10 +470,12 @@ void AThrowItem::FireSound()
     );
 }
 
+
+
 void AThrowItem::FireSmoke()
 {
 
-
+    //SetLifeSpan(SmokeLifeTime);
 
 }
 

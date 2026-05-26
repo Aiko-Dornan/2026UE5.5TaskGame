@@ -136,13 +136,14 @@ void AEnemyAIController::UpdateAI()
         bCurrentlySeeingTarget = false;
         TargetActor = nullptr;
 
-        if (CurrentState != EEnemyState::Caution)
+        /*if (CurrentState != EEnemyState::Search)
         {
             StopMovement();
 
-            CurrentState = EEnemyState::Caution;
-        }
+            CurrentState = EEnemyState::Search;
+        }*/
     }
+    
 
     UpdateLOD();
 
@@ -602,7 +603,12 @@ void AEnemyAIController::OnPossess(APawn* InPawn)
 
 void AEnemyAIController::OnTargetPerceptionUpdated(AActor* Actor, FAIStimulus Stimulus)
 {
-   
+    if (bInSmoke)
+    {
+        return;
+    }
+
+    
 
     if (!Actor) return;
     //APlayerCharacter* Player = Cast<APlayerCharacter>(Actor);

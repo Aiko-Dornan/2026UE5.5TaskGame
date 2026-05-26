@@ -23,7 +23,7 @@ public:
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Item")
     FInventoryItemData ItemData;
 
-    
+    bool ImpossiblePick = false;
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite ,Category= "Item")
     FText ItemName = FText::FromString("Nameless");

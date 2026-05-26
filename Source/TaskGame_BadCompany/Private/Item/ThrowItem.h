@@ -22,6 +22,8 @@ enum class EThrowItemType : uint8
     FIREWALL,
 };
 
+class UNiagaraComponent;
+
 UCLASS()
 class AThrowItem : public ABaseItem
 {
@@ -104,7 +106,9 @@ public:
 protected:
     virtual void BeginPlay() override;
     //virtual void Tick(float DeltaTime) override;
-
+    UFUNCTION()
+    virtual void OnThrowItemHit(
+        const FHitResult& Hit);
 
 public:
     UPROPERTY(EditAnywhere, BlueprintReadWrite)

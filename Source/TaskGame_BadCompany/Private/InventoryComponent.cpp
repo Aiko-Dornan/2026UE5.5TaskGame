@@ -224,7 +224,7 @@ bool UInventoryComponent::UseItem(
 
             FVector ThrowDirection =
                 Player->GetControlRotation().Vector();
-            UE_LOG(LogTemp, Warning, TEXT("Power: %f"), Player->CurrentThrowPower);
+            UE_LOG(LogTemp, Warning, TEXT("Power: %f+%s"), Player->CurrentThrowPower,*SpawnedItem->GetName());
             ThrowDirection.Z += 0.25f;
 
             ThrowDirection.Normalize();
