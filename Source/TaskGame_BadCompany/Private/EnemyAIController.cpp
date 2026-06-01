@@ -1213,3 +1213,36 @@ void AEnemyAIController::SourceBisActive(FDetectionSource AllSource)
 
    
 }
+
+void AEnemyAIController::ResumeMovement()
+{
+    switch (CurrentState)
+    {
+    case EEnemyState::Idle:
+        /*if (bIsPatrolling)*/
+        {
+        //bIsPatrolling = true;
+        UE_LOG(LogTemp, Warning, TEXT("%s:HukkatuSita!."), *GetName());
+            MoveToNextPatrolPoint();
+        }
+        break;
+
+    case EEnemyState::Investigate:
+        MoveToLocation(
+            FirstDetectLocation);
+        break;
+
+    case EEnemyState::Search:
+        MoveToLocation(
+            RandomMoveLocation);
+        break;
+
+    case EEnemyState::Chase:
+        if (TargetActor)
+        {
+            MoveToActor(
+                TargetActor);
+        }
+        break;
+    }
+}

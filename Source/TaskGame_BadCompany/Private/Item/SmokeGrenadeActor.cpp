@@ -38,6 +38,10 @@ void ASmokeGrenadeActor::OnThrowItemHit(
 {
     Super::OnThrowItemHit(Hit);
 
+    Mesh->SetSimulatePhysics(false);
+    Mesh->SetPhysicsLinearVelocity(FVector::ZeroVector);
+    Mesh->SetPhysicsAngularVelocityInDegrees(FVector::ZeroVector);
+
     ActivateSmoke();
 }
 

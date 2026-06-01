@@ -6,6 +6,8 @@
 #include "Components/StaticMeshComponent.h"
 #include "NavModifierComponent.h"
 #include "NavAreas/NavArea_Null.h"
+#include "NavAreas/NavArea_Obstacle.h"
+#include"EnemyAIController.h"
 
 AFireWallActor::AFireWallActor()
 {
@@ -14,29 +16,31 @@ AFireWallActor::AFireWallActor()
     WallCollision =
         CreateDefaultSubobject<UBoxComponent>(
             TEXT("WallCollision"));
-
     //RootComponent = WallCollision;
+    
     WallCollision->SetupAttachment(RootComponent);
-
-    WallMesh =
-        CreateDefaultSubobject<UStaticMeshComponent>(
-            TEXT("WallMesh"));
-
     NavModifier =
         CreateDefaultSubobject<UNavModifierComponent>(
             TEXT("NavModifier"));
 
+    WallMesh =
+        CreateDefaultSubobject<UStaticMeshComponent>(
+            TEXT("WallMesh"));
+    
+
     WallMesh->SetupAttachment(RootComponent);
 
-    WallCollision->SetCollisionEnabled(
-        ECollisionEnabled::QueryOnly);
+    // サイズ
+    
+    WallCollision->SetCanEverAffectNavigation(false);
+   
 
-    WallCollision->SetCollisionResponseToAllChannels(
-        ECR_Ignore);
+    /*WallCollision->SetCollisionResponseToAllChannels(
+        ECR_Ignore);*/
 
-    WallCollision->SetCollisionResponseToChannel(
+   /* WallCollision->SetCollisionResponseToChannel(
         ECC_Pawn,
-        ECR_Overlap);
+        ECR_Overlap);*/
 
     // 通行不可
     
@@ -58,8 +62,40 @@ void AFireWallActor::OnThrowItemHit(
         TEXT("Fire Activated")
     );
 
-    ActivateFireWall();
+    if (!FireWallAreaClass)
+    {
+        return;
+    }
+   
+    FVector SpawnLocation =
+        Hit.ImpactPoint;
+
+    FRotator SpawnRotation =
+        GetActorRotation();
+
+    GetWorld()->SpawnActor<AFireWallArea>(
+        FireWallAreaClass,
+        SpawnLocation,
+        SpawnRotation
+    );
+
+    Destroy();
+
+    //// 投擲物停止
+    //Mesh->SetSimulatePhysics(false);
+    //Mesh->SetPhysicsLinearVelocity(FVector::ZeroVector);
+    //Mesh->SetPhysicsAngularVelocityInDegrees(FVector::ZeroVector);
+
+    //ActivateFireWall();
 }
+
+//void AFireWallActor::EndPlay(
+//    const EEndPlayReason::Type EndPlayReason)
+//{
+//    Super::EndPlay(EndPlayReason);
+//
+//    RestoreEnemyMovement();
+//}
 
 void AFireWallActor::ActivateFireWall()
 {
@@ -71,22 +107,32 @@ void AFireWallActor::ActivateFireWall()
 
     bIsActivatedFire = true;
 
-    Mesh = nullptr;
+    Mesh->SetVisibility(false);
+   /* Mesh->SetCollisionEnabled(
+        ECollisionEnabled::NoCollision);*/
+
+    
+
+    WallCollision->SetBoxExtent(
+        FVector(300.f, 300.f, 200.f));
 
     WallCollision->SetCollisionEnabled(
+        ECollisionEnabled::NoCollision);
+
+    WallCollision->SetCanEverAffectNavigation(true);
+
+   /* WallCollision->SetCollisionEnabled(
         ECollisionEnabled::QueryOnly);
 
     WallCollision->SetCollisionEnabled(
-        ECollisionEnabled::QueryAndPhysics);
+        ECollisionEnabled::QueryAndPhysics);*/
 
-    WallCollision->SetCollisionResponseToAllChannels(
-        ECR_Block);
+   /* WallCollision->SetCollisionResponseToAllChannels(
+        ECR_Block);*/
 
-    // サイズ
-    WallCollision->SetBoxExtent(
-        FVector(50.f, 300.f, 200.f));
+   
 
-    WallCollision->SetCanEverAffectNavigation(true);
+    
 
     NavModifier->SetAreaClass(
         UNavArea_Null::StaticClass());
@@ -97,3 +143,37 @@ void AFireWallActor::ActivateFireWall()
         TEXT("Fire KieyukuInoti")
     );
 }
+
+
+//void AFireWallActor::RestoreEnemyMovement()
+//{
+//    TArray<AActor*> Actors;
+//
+//    UGameplayStatics::GetAllActorsOfClass(
+//        GetWorld(),
+//        AEnemyCharacter::StaticClass(),
+//        Actors);
+//
+//    for (AActor* Actor : Actors)
+//    {
+//        AEnemyCharacter* Enemy =
+//            Cast<AEnemyCharacter>(Actor);
+//
+//        if (!Enemy)
+//        {
+//            continue;
+//        }
+//
+//        AEnemyAIController* AI =
+//            Cast<AEnemyAIController>(
+//                Enemy->GetController());
+//
+//        if (!AI)
+//        {
+//            continue;
+//        }
+//
+//        // 復帰処理
+//        AI->ResumeMovement();
+//    }
+//}

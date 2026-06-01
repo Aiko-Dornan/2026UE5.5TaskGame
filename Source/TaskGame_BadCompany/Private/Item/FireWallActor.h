@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Item/ThrowItem.h"
+#include"Item/FireWallArea.h"
 #include "FireWallActor.generated.h"
 
 /**
@@ -28,8 +29,15 @@ protected:
     virtual void OnThrowItemHit(
         const FHitResult& Hit) override;
 
+    /*UFUNCTION()
+    void EndPlay(
+        const EEndPlayReason::Type EndPlayReason);*/
+
     UFUNCTION()
     void ActivateFireWall();
+
+    //void RestoreEnemyMovement();
+
 
 public:
     UPROPERTY(VisibleAnywhere)
@@ -45,5 +53,8 @@ public:
     float LifeTime = 8.f;
 
     bool bIsActivatedFire = false;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item|ThrowItem|Fire")
+    TSubclassOf<class AFireWallArea> FireWallAreaClass;
 
 };

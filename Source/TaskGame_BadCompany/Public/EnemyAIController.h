@@ -58,6 +58,8 @@ public:
     UFUNCTION()
     void OnTargetPerceptionUpdated(AActor* Actor, FAIStimulus Stimulus);
 
+    void UpdateAI();
+
     //敵の感知具合を表す関数
     float GetDetectionPercent() const;
 
@@ -68,6 +70,9 @@ public:
 
     void StartPatrol();         //巡回を開始する関数
     void MoveToNextPatrolPoint();//次のポイントに目標を変える関数
+
+    void ResumeMovement();
+
 
 protected:
     virtual void BeginPlay() override;
@@ -160,7 +165,7 @@ private:
     FTimerHandle AITickHandle;
     float UpdateInterval = 0.1f;
 
-    void UpdateAI();
+    
     void UpdateLOD();
 
     void SetupPerception();
