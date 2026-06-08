@@ -140,7 +140,7 @@ void AEnemyCharacter::RecoverFromStun()
     // IdleならPatrol再開
     if (PreviousMoveState == EEnemyMoveState::Idle)
     {
-        EnemyAI->StartPatrol();
+        EnemyAI->MoveToNextPatrolPoint();
     }
 
 }

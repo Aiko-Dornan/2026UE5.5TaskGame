@@ -98,6 +98,10 @@ void AFireWallArea::RestoreEnemyMovement()
     {
         if (!IsValid(AI))
         {
+            UE_LOG(LogTemp, Warning,
+                TEXT("%s:AI naiyo"), *AI->GetName()
+                  );
+
             continue;
         }
 

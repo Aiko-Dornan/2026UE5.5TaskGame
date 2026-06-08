@@ -398,6 +398,10 @@ void APlayerCharacter::StartUseItem()
         ThrowChargeTime = 0.f;
         UE_LOG(LogTemp, Warning, TEXT("Use Item T"));
     }
+    else if (Type==EItemType::TRAPPUT)
+    {
+
+    }
     else
     {
         UE_LOG(LogTemp, Warning, TEXT("Use Item D"));

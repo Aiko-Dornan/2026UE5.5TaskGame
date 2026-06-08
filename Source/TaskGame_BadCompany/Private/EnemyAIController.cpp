@@ -1216,32 +1216,56 @@ void AEnemyAIController::SourceBisActive(FDetectionSource AllSource)
 
 void AEnemyAIController::ResumeMovement()
 {
+
+    float Delay = 0.f;
+
     switch (CurrentState)
     {
     case EEnemyState::Idle:
-        /*if (bIsPatrolling)*/
-        {
-        //bIsPatrolling = true;
-        UE_LOG(LogTemp, Warning, TEXT("%s:HukkatuSita!."), *GetName());
-            MoveToNextPatrolPoint();
-        }
-        break;
-
-    case EEnemyState::Investigate:
-        MoveToLocation(
-            FirstDetectLocation);
+        Delay = 1.f;
         break;
 
     case EEnemyState::Search:
-        MoveToLocation(
-            RandomMoveLocation);
+        Delay = 2.f;
+        break;
+
+    default:
+        Delay = 0.f;
+        break;
+    }
+
+    GetWorld()->GetTimerManager().SetTimer(
+        ResumeTimerHandle,
+        this,
+        &AEnemyAIController::ResumeMovementInternal,
+        Delay,
+        false
+    );
+
+   
+}
+
+void AEnemyAIController::ResumeMovementInternal()
+{
+    switch (CurrentState)
+    {
+    case EEnemyState::Idle:
+        bIsPatrolling = true;
+        MoveToNextPatrolPoint();
+        break;
+
+    case EEnemyState::Investigate:
+        MoveToLocation(FirstDetectLocation);
+        break;
+
+    case EEnemyState::Search:
+        MoveToLocation(RandomMoveLocation);
         break;
 
     case EEnemyState::Chase:
         if (TargetActor)
         {
-            MoveToActor(
-                TargetActor);
+            MoveToActor(TargetActor);
         }
         break;
     }

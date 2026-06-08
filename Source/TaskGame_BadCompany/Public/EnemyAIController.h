@@ -72,7 +72,7 @@ public:
     void MoveToNextPatrolPoint();//次のポイントに目標を変える関数
 
     void ResumeMovement();
-
+    void ResumeMovementInternal();
 
 protected:
     virtual void BeginPlay() override;
@@ -190,7 +190,7 @@ private:
     UPROPERTY(EditAnywhere, Category = "AI|Patrol")
     float PatrolAcceptanceRadius = 100.f;
 
-    
+    FTimerHandle ResumeTimerHandle;
 
     
 
